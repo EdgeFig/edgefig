@@ -2,11 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"net/netip"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/cmmarslender/edgefig/pkg/edgeconfig"
 )
 
 var cfgFile string
@@ -17,7 +21,32 @@ var rootCmd = &cobra.Command{
 	Short: "Configuration tool for edge* line of equipment from Ubiquiti",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		cfg := edgeconfig.Router{
+			Firewall: edgeconfig.Firewall{
+				AllPing: edgeconfig.Enable,
+			},
+			Interfaces: map[string]edgeconfig.Interface{
+				"eth0": {
+					Enable: edgeconfig.Disable,
+				},
+				"eth1": {
+					Enable: edgeconfig.Enable,
+					Address: []netip.Prefix{
+						netip.MustParsePrefix("10.0.0.3/22"),
+						netip.MustParsePrefix("2001:db8::1/64"),
+					},
+				},
+			},
+		}
+
+		data, err := edgeconfig.Marshal(cfg)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+
+		fmt.Printf("%s", string(data))
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

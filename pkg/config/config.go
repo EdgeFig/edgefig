@@ -44,4 +44,4 @@ type DHCP struct {
 }
 
 // Switch is the top level config for a single switch
-type Switch struct {}
+type Switch struct{}
