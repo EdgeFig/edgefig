@@ -1,0 +1,51 @@
+# @TODO Not sure if a list of routers is appropriate, since later sections will apply to all of them
+# Could limit to one in validation, and leave this format for easy future config translation
+routers:
+  - name: router01
+    # If an interface is not specifically listed here, it will be assumed disabled
+    # To properly support this, we may need to do some interface discovery on the routers
+    # since we need to have a basic disabled block like:
+    # ethernet eth0 {
+    #   disable
+    #   duplex auto
+    #   speed auto
+    # }
+    interfaces:
+      eth1:
+        name: Internet
+        addresses:
+          - 10.0.0.3/22
+          - 2001:db8::/32
+        # @TODO ipv6 settings
+      eth2:
+        name: LAN_10_100_0_X
+        addresses:
+          - 10.100.0.1/24
+        mtu: 9000
+    dhcp:
+      - name: LAN_10_100_0_X
+        subnet: 10.100.0.0/24
+        router: 10.100.0.1
+        start: 10.100.0.150
+        end: 10.100.0.254
+        lease: 86400 # @TODO This should be a default if not set
+        # @TODO check if 2 is the limit or if non-ui config will issue more
+        # Add validation check either way
+        dns:
+          - 1.1.1.1
+          - 8.8.8.8
+    users:
+      - name: ubnt
+        # @TODO this should support reading from ENV
+        # Also may need a way to change password, while still being able to access the router to do the change
+        password: ubnt
+        role: admin
+
+#switches:
+#  - name: switch01
+
+#firewall:
+#  - <rule>
+
+#vlans:
+#  -
