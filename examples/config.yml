@@ -35,7 +35,7 @@ routers:
           - 1.1.1.1
           - 8.8.8.8
     users:
-      - name: ubnt
+      - username: ubnt
         # @TODO this should support reading from ENV
         # Also may need a way to change password, while still being able to access the router to do the change
         password: ubnt
