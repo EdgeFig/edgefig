@@ -1,0 +1,91 @@
+interfaces {
+    ethernet eth0 {
+        address 192.168.1.1/24
+        duplex auto
+        speed auto
+    }
+    ethernet eth1 {
+        address dhcp
+        duplex auto
+        speed auto
+    }
+    ethernet eth2 {
+        duplex auto
+        speed auto
+    }
+    ethernet eth3 {
+        duplex auto
+        speed auto
+    }
+    ethernet eth4 {
+        duplex auto
+        speed auto
+    }
+    ethernet eth5 {
+        duplex auto
+        speed auto
+    }
+    ethernet eth6 {
+        duplex auto
+        speed auto
+    }
+    ethernet eth7 {
+        duplex auto
+        speed auto
+    }
+    ethernet eth8 {
+        duplex auto
+        speed auto
+    }
+    loopback lo {
+    }
+}
+service {
+    gui {
+        http-port 80
+        https-port 443
+        older-ciphers enable
+    }
+    ssh {
+        port 22
+        protocol-version v2
+    }
+    unms {
+    }
+}
+system {
+    host-name EdgeRouter-Infinity
+    login {
+        user ubnt {
+            authentication {
+                encrypted-password $1$zKNoUbAo$gomzUbYvgyUMcD436Wo66.
+            }
+            level admin
+        }
+    }
+    ntp {
+        server 0.ubnt.pool.ntp.org {
+        }
+        server 1.ubnt.pool.ntp.org {
+        }
+        server 2.ubnt.pool.ntp.org {
+        }
+        server 3.ubnt.pool.ntp.org {
+        }
+    }
+    syslog {
+        global {
+            facility all {
+                level notice
+            }
+            facility protocols {
+                level debug
+            }
+        }
+    }
+    time-zone UTC
+}
+
+
+/* Warning: Do not remove the following line. */
+/* === vyatta-config-version: "cron@1:vrrp@1:dhcp-relay@1:ubnt-udapi-server@1:webgui@1:nat@3:ubnt-l2tp@1:quagga@2:vyatta-netflow@1:suspend@1:firewall@5:ipsec@5:config-management@1:webproxy@1:zone-policy@1:dhcp-server@4:ubnt-unms@2:qos@1:system@5:ubnt-pptp@1:ubnt-util@1:conntrack@1" === */
