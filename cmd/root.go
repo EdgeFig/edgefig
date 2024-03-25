@@ -27,15 +27,22 @@ var rootCmd = &cobra.Command{
 			Firewall: edgeconfig.Firewall{
 				AllPing: edgeconfig.Enable,
 			},
-			Interfaces: map[string]edgeconfig.Interface{
-				"eth0": {
-					Enable: edgeconfig.Disable,
-				},
-				"eth1": {
-					Enable: edgeconfig.Enable,
-					Address: []netip.Prefix{
-						netip.MustParsePrefix("10.0.0.3/22"),
-						netip.MustParsePrefix("2001:db8::1/64"),
+			Interfaces: edgeconfig.Interfaces{
+				Interfaces: []edgeconfig.Interface{
+					{
+						Type: edgeconfig.InterfaceTypeEthernet,
+						Name: "eth0",
+						Enable: edgeconfig.Disable,
+					},
+					{
+						Type: edgeconfig.InterfaceTypeEthernet,
+						Name: "eth1",
+						Enable: edgeconfig.Enable,
+						Description: "WAN",
+						Address: []netip.Prefix{
+							netip.MustParsePrefix("10.0.0.3/22"),
+							netip.MustParsePrefix("2001:db8::1/64"),
+						},
 					},
 				},
 			},

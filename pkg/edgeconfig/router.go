@@ -8,9 +8,9 @@ import (
 
 // Router is the top level config that applies to EdgeRouters
 type Router struct {
-	Firewall   Firewall             `edge:"firewall"`
-	Interfaces map[string]Interface `edge:"interface"`
-	Service    RouterServices       `edge:"service"`
+	Firewall   Firewall       `edge:"firewall"`
+	Interfaces Interfaces     `edge:"interfaces"`
+	Service    RouterServices `edge:"service"`
 }
 
 // Firewall is the firewall config for routers
@@ -26,13 +26,30 @@ type Firewall struct {
 	SynCookies           EnableDisable `edge:"syn-cookies"`
 }
 
+type Interfaces struct {
+	Interfaces []Interface `edge:"{{ .Type }} {{ .Name }}"`
+}
+
+// InterfaceType lists known types for an interface
+type InterfaceType string
+
+const (
+	// InterfaceTypeEthernet "ethernet"
+	InterfaceTypeEthernet InterfaceType = "ethernet"
+	// InterfaceTypeLoopback "loopback"
+	InterfaceTypeLoopback InterfaceType = "loopback"
+)
+
 // Interface is a single interface on the router
 type Interface struct {
-	Enable  EnableDisable  `edge:""`
-	Address []netip.Prefix `edge:"address"` // @TODO this might be a weird tag - this just gets repeated
-	Duplex  string         `edge:"duplex"`  // @TODO this is likely uint w/ default string auto
-	Speed   string         `edge:"speed"`   // @TODO this is likely uint w/ default string auto
-	MTU     uint16         `edge:"mtu"`     // @TODO this is likely uint w/ default string auto
+	Type        InterfaceType // @TODO add validation that this is always present, or add default
+	Name        string
+	Enable      EnableDisable  `edge:""`
+	Description string         `edge:"description,omitempty"`
+	Address     []netip.Prefix `edge:"address"` // @TODO this might be a weird tag - this just gets repeated
+	Duplex      string         `edge:"duplex"`  // @TODO this is likely uint w/ default string auto
+	Speed       string         `edge:"speed"`   // @TODO this is likely uint w/ default string auto
+	MTU         uint16         `edge:"mtu"`     // @TODO this is likely uint w/ default string auto
 }
 
 // RouterServices Available services on the router

@@ -79,6 +79,8 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 
 					typeStr := sliceElement.Type().String()
 					switch typeStr {
+					case "edgeconfig.Interface":
+						fallthrough
 					case "edgeconfig.NatRule":
 						fallthrough
 					case "edgeconfig.DHCPNetwork":
