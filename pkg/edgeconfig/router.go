@@ -2,6 +2,8 @@ package edgeconfig
 
 import (
 	"net/netip"
+
+	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
 // Router is the top level config that applies to EdgeRouters
@@ -73,18 +75,35 @@ type DHCPStartStop struct {
 	Stop  netip.Addr `edge:"stop"`
 }
 
-// GUI Settings
+// GUIService Settings for GUI
 type GUIService struct {
 	HTTPPort     uint16        `edge:"http-port"`
 	HTTPSPort    uint16        `edge:"https-port"`
 	OlderCiphers EnableDisable `edge:"older-ciphers"`
 }
 
-type NatService struct{}
+// NatService NAT settings
+type NatService struct {
+	Rules []NatRule `edge:"rule {{ .Index }}"`
+}
 
+// NatRule a single NAT rule
+type NatRule struct {
+	Name              string           `edge:"description"`
+	Type              types.NATType    `edge:"type"`
+	InboundInterface  string           `edge:"inbound-interface,omitempty"`
+	OutboundInterface string           `edge:"outbound-interface,omitempty"`
+	Protocol          types.Protocol   `edge:"protocol,omitempty"`
+	Log               EnableDisable    `edge:"log"`
+	OutsideAddress    types.NATAddress `edge:"destination,omitempty"`
+	InsideAddress     types.NATAddress `edge:"inside-address,omitempty"`
+}
+
+// SSHService settings for ssh
 type SSHService struct {
 	Port            uint16 `edge:"port"`
 	ProtocolVersion string `edge:"protocol-version"`
 }
 
+// UNMSService settings for UNMS (only supported here to keep an empty block in config)
 type UNMSService struct{}

@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cmmarslender/edgefig/pkg/edgeconfig"
+	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
 var cfgFile string
@@ -72,7 +73,42 @@ var rootCmd = &cobra.Command{
 					OlderCiphers: edgeconfig.Disable,
 				},
 				NAT: edgeconfig.NatService{
-
+					Rules: []edgeconfig.NatRule{
+						{
+							Name: "Simple Port Forward",
+							Type: types.NATTypeDestination,
+							InboundInterface: "eth1",
+							Protocol: types.ProtocolTCP,
+							Log: edgeconfig.Disable,
+							OutsideAddress: types.NATAddress{
+								Address: netip.MustParseAddr("192.168.1.1"),
+								Port:    443,
+							},
+							InsideAddress: types.NATAddress{
+								Address: netip.MustParseAddr("10.48.0.50"),
+								Port:    443,
+							},
+						},
+						{
+							Name: "Simple IP Forward",
+							Type: types.NATTypeDestination,
+							InboundInterface: "eth1",
+							Log: edgeconfig.Disable,
+							OutsideAddress: types.NATAddress{
+								Address: netip.MustParseAddr("192.168.1.2"),
+							},
+							InsideAddress: types.NATAddress{
+								Address: netip.MustParseAddr("10.48.0.51"),
+							},
+						},
+						{
+							Name: "Masquerade for WAN",
+							Log: edgeconfig.Disable,
+							OutboundInterface: "eth1",
+							Protocol: types.ProtocolAll,
+							Type: types.NATTypeMasquerade,
+						},
+					},
 				},
 				SSH: edgeconfig.SSHService{
 					Port:            22,
