@@ -36,6 +36,7 @@ type Interface struct {
 // RouterServices Available services on the router
 type RouterServices struct {
 	DHCPServer DHCPServer `edge:"dhcp-server"`
+	GUI        GUI        `edge:"gui"`
 }
 
 // DHCPServer information about enabled DHCP servers
@@ -67,4 +68,11 @@ type DHCPSubnet struct {
 type DHCPStartStop struct {
 	Start netip.Addr
 	Stop  netip.Addr `edge:"stop"`
+}
+
+// GUI Settings
+type GUI struct {
+	HTTPPort     uint16        `edge:"http-port"`
+	HTTPSPort    uint16        `edge:"https-port"`
+	OlderCiphers EnableDisable `edge:"older-ciphers"`
 }

@@ -66,6 +66,11 @@ var rootCmd = &cobra.Command{
 						},
 					},
 				},
+				GUI: edgeconfig.GUI{
+					HTTPPort:     80,
+					HTTPSPort:    443,
+					OlderCiphers: edgeconfig.Disable,
+				},
 			},
 		}
 

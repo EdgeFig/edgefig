@@ -7,5 +7,5 @@ const (
 	// Enable is a quick const to set EnableDisable to Enable
 	Enable = EnableDisable(true)
 	// Disable is a quick const to set EnableDisable to Disable
-	Disable = EnableDisable(true)
+	Disable = EnableDisable(false)
 )
