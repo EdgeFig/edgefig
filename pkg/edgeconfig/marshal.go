@@ -79,11 +79,14 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 
 					typeStr := sliceElement.Type().String()
 					switch typeStr {
+					// @TODO do we need this now that we support templating in the tag names?
 					case "edgeconfig.Interface":
 						fallthrough
 					case "edgeconfig.NatRule":
 						fallthrough
 					case "edgeconfig.DHCPNetwork":
+						fallthrough
+					case "edgeconfig.NTPServer":
 						fallthrough
 					case "edgeconfig.DHCPSubnet":
 						buffer.WriteString("{\n")

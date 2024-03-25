@@ -24,20 +24,49 @@ var rootCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := edgeconfig.Router{
+			System: edgeconfig.RouterSystem{
+				HostName: "EdgeRouter-Infinity",
+				Login: edgeconfig.RouterLogin{
+					User: edgeconfig.User{
+						Username: "ubnt",
+						Authentication: edgeconfig.Authentication{
+							// This is just the default "ubnt" password
+							EncryptedPassword: "$1$zKNoUbAo$gomzUbYvgyUMcD436Wo66.",
+						},
+						Level: edgeconfig.UserLevelAdmin,
+					},
+				},
+				NTP: edgeconfig.NTPServers{
+					Servers: []edgeconfig.NTPServer{
+						{
+							Hostname: "0.ubnt.pool.ntp.org",
+						},
+						{
+							Hostname: "1.ubnt.pool.ntp.org",
+						},
+						{
+							Hostname: "2.ubnt.pool.ntp.org",
+						},
+						{
+							Hostname: "3.ubnt.pool.ntp.org",
+						},
+					},
+				},
+			},
 			Firewall: edgeconfig.Firewall{
 				AllPing: edgeconfig.Enable,
 			},
 			Interfaces: edgeconfig.Interfaces{
 				Interfaces: []edgeconfig.Interface{
 					{
-						Type: edgeconfig.InterfaceTypeEthernet,
-						Name: "eth0",
+						Type:   edgeconfig.InterfaceTypeEthernet,
+						Name:   "eth0",
 						Enable: edgeconfig.Disable,
 					},
 					{
-						Type: edgeconfig.InterfaceTypeEthernet,
-						Name: "eth1",
-						Enable: edgeconfig.Enable,
+						Type:        edgeconfig.InterfaceTypeEthernet,
+						Name:        "eth1",
+						Enable:      edgeconfig.Enable,
 						Description: "WAN",
 						Address: []netip.Prefix{
 							netip.MustParsePrefix("10.0.0.3/22"),
@@ -82,11 +111,11 @@ var rootCmd = &cobra.Command{
 				NAT: edgeconfig.NatService{
 					Rules: []edgeconfig.NatRule{
 						{
-							Name: "Simple Port Forward",
-							Type: types.NATTypeDestination,
+							Name:             "Simple Port Forward",
+							Type:             types.NATTypeDestination,
 							InboundInterface: "eth1",
-							Protocol: types.ProtocolTCP,
-							Log: edgeconfig.Disable,
+							Protocol:         types.ProtocolTCP,
+							Log:              edgeconfig.Disable,
 							OutsideAddress: types.NATAddress{
 								Address: netip.MustParseAddr("192.168.1.1"),
 								Port:    443,
@@ -97,10 +126,10 @@ var rootCmd = &cobra.Command{
 							},
 						},
 						{
-							Name: "Simple IP Forward",
-							Type: types.NATTypeDestination,
+							Name:             "Simple IP Forward",
+							Type:             types.NATTypeDestination,
 							InboundInterface: "eth1",
-							Log: edgeconfig.Disable,
+							Log:              edgeconfig.Disable,
 							OutsideAddress: types.NATAddress{
 								Address: netip.MustParseAddr("192.168.1.2"),
 							},
@@ -109,11 +138,11 @@ var rootCmd = &cobra.Command{
 							},
 						},
 						{
-							Name: "Masquerade for WAN",
-							Log: edgeconfig.Disable,
+							Name:              "Masquerade for WAN",
+							Log:               edgeconfig.Disable,
 							OutboundInterface: "eth1",
-							Protocol: types.ProtocolAll,
-							Type: types.NATTypeMasquerade,
+							Protocol:          types.ProtocolAll,
+							Type:              types.NATTypeMasquerade,
 						},
 					},
 				},

@@ -11,6 +11,7 @@ type Router struct {
 	Firewall   Firewall       `edge:"firewall"`
 	Interfaces Interfaces     `edge:"interfaces"`
 	Service    RouterServices `edge:"service"`
+	System     RouterSystem   `edge:"system"`
 }
 
 // Firewall is the firewall config for routers
@@ -124,3 +125,61 @@ type SSHService struct {
 
 // UNMSService settings for UNMS (only supported here to keep an empty block in config)
 type UNMSService struct{}
+
+// RouterSystem is the system config for the router
+type RouterSystem struct {
+	AnalyticsHandler AnalyticsHandler `edge:"analytics-handler"`
+	CrashHandler     CrashHandler     `edge:"crash-handler"`
+	HostName         string           `edge:"host-name"`
+	Login            RouterLogin      `edge:"login"`
+	NTP              NTPServers       `edge:"ntp"`
+	Syslog           Syslog           `edge:"syslog"`
+}
+
+// AnalyticsHandler settings for analytics
+type AnalyticsHandler struct {
+	SendAnalyticsreport bool `edge:"send-analytics-report"`
+}
+
+// CrashHandler settings for crash handling
+type CrashHandler struct {
+	SendCrashReport bool `edge:"send-crash-report"`
+}
+
+// RouterLogin handles user accounts for the router
+type RouterLogin struct {
+	User User `edge:"user {{ .Username }}"`
+}
+
+// UserLevel is supported roles for the users
+type UserLevel string
+
+const (
+	// UserLevelAdmin grants admin permissions
+	UserLevelAdmin UserLevel = "admin"
+)
+
+// User is a single router user
+type User struct {
+	Username       string
+	Authentication Authentication `edge:"authentication"`
+	Level          UserLevel      `edge:"level"`
+}
+
+// Authentication is the auth details for a user
+type Authentication struct {
+	EncryptedPassword string `edge:"encrypted-password"`
+}
+
+type NTPServers struct {
+	Servers []NTPServer `edge:"server {{ .Hostname }}"`
+}
+
+// NTPServer a single NTP server
+type NTPServer struct {
+	Hostname string
+}
+
+// Syslog section of system config
+type Syslog struct {
+}
