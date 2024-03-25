@@ -79,12 +79,12 @@ var rootCmd = &cobra.Command{
 					{
 						Type:   edgeconfig.InterfaceTypeEthernet,
 						Name:   "eth0",
-						Enable: edgeconfig.Disable,
+						Enable: edgeconfig.Disabled,
 					},
 					{
 						Type:        edgeconfig.InterfaceTypeEthernet,
 						Name:        "eth1",
-						Enable:      edgeconfig.Enable,
+						Enable:      edgeconfig.Enabled,
 						Description: "WAN",
 						Address: []netip.Prefix{
 							netip.MustParsePrefix("10.0.0.3/22"),

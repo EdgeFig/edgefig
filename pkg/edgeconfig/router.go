@@ -47,12 +47,12 @@ const (
 type Interface struct {
 	Type        InterfaceType // @TODO add validation that this is always present, or add default
 	Name        string
-	Enable      EnableDisable  `edge:"."`
+	Enable      DisableProp    `edge:".,omitempty"`
 	Description string         `edge:"description,omitempty"`
-	Address     []netip.Prefix `edge:"address"` // @TODO this might be a weird tag - this just gets repeated
-	Duplex      string         `edge:"duplex"`  // @TODO this is likely uint w/ default string auto
-	Speed       string         `edge:"speed"`   // @TODO this is likely uint w/ default string auto
-	MTU         uint16         `edge:"mtu"`     // @TODO this is likely uint w/ default string auto
+	Address     []netip.Prefix `edge:"address"`
+	Duplex      AutoString     `edge:"duplex"`
+	Speed       AutoString     `edge:"speed"`
+	MTU         uint16         `edge:"mtu,omitempty"`
 }
 
 // RouterServices Available services on the router

@@ -8,6 +8,12 @@ import (
 	"text/template"
 )
 
+// EdgeMarshaller is an interface that indicates customized support to marshal to the edgeconfig format
+type EdgeMarshaller interface {
+	// MarshalEdge does the actual marshalling to edgeconfig format
+	MarshalEdge() ([]byte, error)
+}
+
 // Marshal takes something in and marshals it according to the edge tags
 func Marshal(v interface{}) ([]byte, error) {
 	var buffer bytes.Buffer
@@ -141,6 +147,16 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 
 // formatValue converts field values into their EdgeOS string representation.
 func formatValue(val reflect.Value, omitEmpty bool) (string, error) {
+	// Check if the type implements the CustomMarshaller interface.
+	// This approach works if you have a known interface.
+	if marshaller, ok := val.Interface().(EdgeMarshaller); ok {
+		data, err := marshaller.MarshalEdge()
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+
 	switch val.Kind() {
 	case reflect.String:
 		strval := val.String()
@@ -157,6 +173,11 @@ func formatValue(val reflect.Value, omitEmpty bool) (string, error) {
 				return "enable", nil
 			}
 			return "disable", nil
+		case "DisableProp":
+			if val.Bool() {
+				return "disabled", nil
+			}
+			return "", nil
 		default:
 			if val.Bool() {
 				return "true", nil
