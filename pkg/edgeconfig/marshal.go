@@ -34,7 +34,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 			structField := t.Field(i)
 			tag, omitEmpty := parseEdgeTag(structField.Tag.Get("edge"))
 
-			if tag == "" {
+			if tag == " " {
 				continue // Skip fields without 'edge' tag
 			}
 
@@ -55,12 +55,12 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					if err != nil {
 						return err
 					}
-					buffer.WriteString(fmt.Sprintf("%s%s %s\n", strings.Repeat(" ", depth), tag, val))
+					buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
 				default:
 					if omitEmpty && field.IsZero() {
 						return nil
 					}
-					buffer.WriteString(strings.Repeat(" ", depth) + tag + " {\n")
+					buffer.WriteString(strings.Repeat(" ", depth) + tag + "{\n")
 					err := marshalValue(buffer, field, depth+4)
 					if err != nil {
 						return err
@@ -75,32 +75,23 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					if err != nil {
 						return err
 					}
-					buffer.WriteString(fmt.Sprintf("%s%s ", strings.Repeat(" ", depth), tag))
+					buffer.WriteString(fmt.Sprintf("%s%s", strings.Repeat(" ", depth), tag))
 
 					typeStr := sliceElement.Type().String()
 					switch typeStr {
-					// @TODO do we need this now that we support templating in the tag names?
-					case "edgeconfig.Interface":
-						fallthrough
-					case "edgeconfig.NatRule":
-						fallthrough
-					case "edgeconfig.DHCPNetwork":
-						fallthrough
-					case "edgeconfig.NTPServer":
-						fallthrough
-					case "edgeconfig.DHCPSubnet":
+					case "netip.Prefix", "netip.Addr":
+						val, err := formatValue(sliceElement, omitEmpty)
+						if err != nil {
+							return err
+						}
+						buffer.WriteString(val)
+					default:
 						buffer.WriteString("{\n")
 						err = marshalValue(buffer, sliceElement, depth+4)
 						buffer.WriteString(fmt.Sprintf("%s%s", strings.Repeat(" ", depth), "}"))
 						if err != nil {
 							return err
 						}
-					default:
-						val, err := formatValue(sliceElement, omitEmpty)
-						if err != nil {
-							return err
-						}
-						buffer.WriteString(val)
 					}
 
 					buffer.WriteString("\n")
@@ -112,7 +103,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					return err
 				}
 				if !omitEmpty || (fieldValue != "") {
-					buffer.WriteString(fmt.Sprintf("%s%s %s\n", strings.Repeat(" ", depth), tag, fieldValue))
+					buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, fieldValue))
 				}
 			}
 		}
@@ -140,7 +131,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 				if err != nil {
 					return err
 				}
-				buffer.WriteString(fmt.Sprintf("%s%s %s\n", strings.Repeat(" ", depth), keyValue, valueValue))
+				buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), keyValue, valueValue))
 			}
 		}
 	}
@@ -152,7 +143,12 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 func formatValue(val reflect.Value, omitEmpty bool) (string, error) {
 	switch val.Kind() {
 	case reflect.String:
-		return val.String(), nil
+		strval := val.String()
+		if strings.Contains(strval, " ") {
+			// Needs quotes
+			strval = fmt.Sprintf("\"%s\"", val.String())
+		}
+		return strval, nil
 	case reflect.Bool:
 		specificBool := val.Type().Name()
 		switch specificBool {
@@ -224,6 +220,12 @@ func parseEdgeTag(tag string) (string, bool) {
 				omitEmpty = true
 			}
 		}
+	}
+
+	if tag == "." {
+		tag = ""
+	} else {
+		tag = fmt.Sprintf("%s ", tag)
 	}
 
 	return tag, omitEmpty

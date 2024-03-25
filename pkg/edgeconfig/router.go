@@ -20,6 +20,7 @@ type Firewall struct {
 	BroadcastPing        EnableDisable `edge:"broadcast-ping"`
 	IPv6ReceiveRedirects EnableDisable `edge:"ipv6-receive-redirects"`
 	IPv6SrcRoute         EnableDisable `edge:"ipv6-src-route"`
+	IPSrcRoute           EnableDisable `edge:"ip-src-route"`
 	LogMartians          EnableDisable `edge:"log-martians"`
 	ReceiveRedirects     EnableDisable `edge:"receive-redirects"`
 	SendRedirects        EnableDisable `edge:"send-redirects"`
@@ -27,6 +28,7 @@ type Firewall struct {
 	SynCookies           EnableDisable `edge:"syn-cookies"`
 }
 
+// Interfaces wrapps all interfaces in the config
 type Interfaces struct {
 	Interfaces []Interface `edge:"{{ .Type }} {{ .Name }}"`
 }
@@ -45,7 +47,7 @@ const (
 type Interface struct {
 	Type        InterfaceType // @TODO add validation that this is always present, or add default
 	Name        string
-	Enable      EnableDisable  `edge:""`
+	Enable      EnableDisable  `edge:"."`
 	Description string         `edge:"description,omitempty"`
 	Address     []netip.Prefix `edge:"address"` // @TODO this might be a weird tag - this just gets repeated
 	Duplex      string         `edge:"duplex"`  // @TODO this is likely uint w/ default string auto
@@ -133,7 +135,8 @@ type RouterSystem struct {
 	HostName         string           `edge:"host-name"`
 	Login            RouterLogin      `edge:"login"`
 	NTP              NTPServers       `edge:"ntp"`
-	Syslog           Syslog           `edge:"syslog"`
+	Syslog           Syslog           `edge:"syslog,omitempty"`
+	TimeZone         string           `edge:"time-zone,omitempty"`
 }
 
 // AnalyticsHandler settings for analytics
@@ -171,6 +174,7 @@ type Authentication struct {
 	EncryptedPassword string `edge:"encrypted-password"`
 }
 
+// NTPServers wraps the ntp servers in the config
 type NTPServers struct {
 	Servers []NTPServer `edge:"server {{ .Hostname }}"`
 }
@@ -182,4 +186,16 @@ type NTPServer struct {
 
 // Syslog section of system config
 type Syslog struct {
+	Global SyslogGlobal `edge:"global,omitempty"`
+}
+
+// SyslogGlobal is the global syslog config section
+type SyslogGlobal struct {
+	Facilities []SyslogFacility `edge:"facility {{ .Name }},omitempty"`
+}
+
+// SyslogFacility a single syslog config
+type SyslogFacility struct {
+	Name  string
+	Level string `edge:"level"`
 }

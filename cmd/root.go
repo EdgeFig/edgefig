@@ -52,9 +52,27 @@ var rootCmd = &cobra.Command{
 						},
 					},
 				},
+				Syslog: edgeconfig.Syslog{
+					Global: edgeconfig.SyslogGlobal{
+						Facilities: []edgeconfig.SyslogFacility{
+							{
+								Name:  "all",
+								Level: "notice",
+							},
+							{
+								Name:  "protocols",
+								Level: "debug",
+							},
+						},
+					},
+				},
+				TimeZone: "UTC",
 			},
 			Firewall: edgeconfig.Firewall{
-				AllPing: edgeconfig.Enable,
+				AllPing:       edgeconfig.Enable,
+				LogMartians:   edgeconfig.Disable,
+				SendRedirects: edgeconfig.Enable,
+				SynCookies:    edgeconfig.Enable,
 			},
 			Interfaces: edgeconfig.Interfaces{
 				Interfaces: []edgeconfig.Interface{
