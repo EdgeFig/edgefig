@@ -76,7 +76,7 @@ routers:
           address: 10.0.0.4
       # Rule 5001
       - name: Masquerade for WAN
-        type: masquerade #@TODO this probably should be a type/enum-ish thing
+        type: masquerade
         outbound_interface: eth1
         protocol: all
         log: false
