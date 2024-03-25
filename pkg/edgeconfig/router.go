@@ -30,22 +30,12 @@ type Firewall struct {
 
 // Interfaces wraps all interfaces in the config
 type Interfaces struct {
-	Interfaces []Interface `edge:"{{ .Type }} {{ .Name }}"`
+	Interfaces []Interface `edge:"ethernet {{ .Name }}"`
+	Loopback   Loopback    `edge:"loopback lo"`
 }
-
-// InterfaceType lists known types for an interface
-type InterfaceType string
-
-const (
-	// InterfaceTypeEthernet "ethernet"
-	InterfaceTypeEthernet InterfaceType = "ethernet"
-	// InterfaceTypeLoopback "loopback"
-	InterfaceTypeLoopback InterfaceType = "loopback"
-)
 
 // Interface is a single interface on the router
 type Interface struct {
-	Type        InterfaceType // @TODO add validation that this is always present, or add default
 	Name        string
 	State       DisableProp    `edge:".,omitempty"`
 	Description string         `edge:"description,omitempty"`
@@ -54,6 +44,10 @@ type Interface struct {
 	Duplex      AutoString     `edge:"duplex"`
 	Speed       AutoString     `edge:"speed"`
 	MTU         uint16         `edge:"mtu,omitempty"`
+}
+
+// Loopback Special interface struct for loopback
+type Loopback struct {
 }
 
 // RouterServices Available services on the router

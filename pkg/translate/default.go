@@ -14,7 +14,6 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 			// @TODO need to do interface discovery to see how many interfaces are supported
 			Interfaces: []edgeconfig.Interface{
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth0",
 					State: edgeconfig.Enabled,
 					Address: []netip.Prefix{
@@ -22,48 +21,37 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 					},
 				},
 				{
-					Type:        edgeconfig.InterfaceTypeEthernet,
 					Name:        "eth1",
 					State:       edgeconfig.Enabled,
 					AddressDHCP: "dhcp",
 				},
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth2",
 					State: edgeconfig.Disabled,
 				},
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth3",
 					State: edgeconfig.Disabled,
 				},
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth4",
 					State: edgeconfig.Disabled,
 				},
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth5",
 					State: edgeconfig.Disabled,
 				},
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth6",
 					State: edgeconfig.Disabled,
 				},
 				{
-					Type:  edgeconfig.InterfaceTypeEthernet,
 					Name:  "eth7",
 					State: edgeconfig.Disabled,
 				},
-				// @TODO loopback is a special case, and is an empty block
-				// loopback lo {
-				// }
 				{
-					Type:  edgeconfig.InterfaceTypeLoopback,
-					Name:  "lo",
-					State: edgeconfig.Enabled,
+					Name:  "eth8",
+					State: edgeconfig.Disabled,
 				},
 			},
 		},

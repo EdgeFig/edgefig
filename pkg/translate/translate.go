@@ -24,7 +24,6 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 
 	for intf, intCfg := range router.Interfaces {
 		_iface := edgeconfig.Interface{
-			Type:        edgeconfig.InterfaceTypeEthernet,
 			Name:        intf,
 			State:       edgeconfig.Enabled,
 			Description: intCfg.Name,

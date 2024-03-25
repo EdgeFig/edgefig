@@ -79,12 +79,10 @@ var rootCmd = &cobra.Command{
 			Interfaces: edgeconfig.Interfaces{
 				Interfaces: []edgeconfig.Interface{
 					{
-						Type:  edgeconfig.InterfaceTypeEthernet,
 						Name:  "eth0",
 						State: edgeconfig.Disabled,
 					},
 					{
-						Type:        edgeconfig.InterfaceTypeEthernet,
 						Name:        "eth1",
 						State:       edgeconfig.Enabled,
 						Description: "WAN",
