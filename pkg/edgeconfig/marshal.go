@@ -105,10 +105,19 @@ func formatValue(val reflect.Value) (string, error) {
 	case reflect.String:
 		return val.String(), nil
 	case reflect.Bool:
-		if val.Bool() {
-			return "enable", nil
+		specificBool := val.Type().Name()
+		switch specificBool {
+		case "EnableDisable":
+			if val.Bool() {
+				return "enable", nil
+			}
+			return "disable", nil
+		default:
+			if val.Bool() {
+				return "true", nil
+			}
+			return "false", nil
 		}
-		return "disable", nil
 	case reflect.Slice:
 		return "", fmt.Errorf("should not be formatting slices directly - slices indicate repeated statements")
 	default:
