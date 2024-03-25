@@ -127,7 +127,7 @@ var rootCmd = &cobra.Command{
 					OlderCiphers: edgeconfig.Disable,
 				},
 				NAT: edgeconfig.NatService{
-					Rules: []edgeconfig.NatRule{
+					Dest: []edgeconfig.NatRule{
 						{
 							Name:             "Simple Port Forward",
 							Type:             types.NATTypeDestination,
@@ -155,6 +155,8 @@ var rootCmd = &cobra.Command{
 								Address: netip.MustParseAddr("10.48.0.51"),
 							},
 						},
+					},
+					Src: []edgeconfig.NatRule{
 						{
 							Name:              "Masquerade for WAN",
 							Log:               edgeconfig.Disable,

@@ -1,7 +1,11 @@
 package edgeconfig
 
 import (
+	"bytes"
+	"fmt"
 	"net/netip"
+	"reflect"
+	"strings"
 
 	"github.com/cmmarslender/edgefig/pkg/types"
 )
@@ -99,7 +103,40 @@ type GUIService struct {
 
 // NatService NAT settings
 type NatService struct {
-	Rules []NatRule `edge:"rule {{ .Index }}"`
+	// Must be in distinct numbering blocks, so splitting to make that easier
+	Dest []NatRule
+	Src  []NatRule
+}
+
+// MarshalEdge not used for NatService
+func (ns NatService) MarshalEdge() ([]byte, error) {
+	return nil, fmt.Errorf("marshaledge not implemented for NatService")
+}
+
+// MarshalEdgeWithDepth custom marshaller for NatService to ensure we get the numbers correct
+func (ns NatService) MarshalEdgeWithDepth(depth int) ([]byte, error) {
+	var buffer bytes.Buffer
+	destCount := 1
+	srcCount := 5000
+	for _, rule := range ns.Dest {
+		buffer.WriteString(fmt.Sprintf("%srule %d {\n", strings.Repeat(" ", depth), destCount))
+		err := marshalValue(&buffer, reflect.ValueOf(rule), depth+4)
+		if err != nil {
+			return nil, err
+		}
+		buffer.WriteString(fmt.Sprintf("%s}\n", strings.Repeat(" ", depth)))
+		destCount++
+	}
+	for _, rule := range ns.Src {
+		buffer.WriteString(fmt.Sprintf("%srule %d {\n", strings.Repeat(" ", depth), srcCount))
+		err := marshalValue(&buffer, reflect.ValueOf(rule), depth+4)
+		if err != nil {
+			return nil, err
+		}
+		buffer.WriteString(fmt.Sprintf("%s}\n", strings.Repeat(" ", depth)))
+		srcCount++
+	}
+	return buffer.Bytes(), nil
 }
 
 // NatRule a single NAT rule

@@ -12,6 +12,7 @@ import (
 type EdgeMarshaller interface {
 	// MarshalEdge does the actual marshalling to edgeconfig format
 	MarshalEdge() ([]byte, error)
+	MarshalEdgeWithDepth(depth int) ([]byte, error)
 }
 
 // Marshal takes something in and marshals it according to the edge tags
@@ -24,11 +25,22 @@ func Marshal(v interface{}) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// @TODO I dont think we need "format" value - should be able to just recursively call this all the way down
 func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 	// Ensure we're dealing with the base type (in case of pointers).
 	val = reflect.Indirect(val)
 	if !val.IsValid() {
 		return nil // Skip invalid fields (e.g., uninitialized pointers)
+	}
+
+	// Check if the type implements the CustomMarshaller interface.
+	// This approach works if you have a known interface.
+	if marshaller, ok := val.Interface().(EdgeMarshaller); ok {
+		data, err := marshaller.MarshalEdgeWithDepth(depth)
+		if err != nil {
+			return err
+		}
+		buffer.WriteString(string(data))
 	}
 
 	kind := val.Kind()

@@ -5,6 +5,7 @@ import (
 
 	"github.com/cmmarslender/edgefig/pkg/config"
 	"github.com/cmmarslender/edgefig/pkg/edgeconfig"
+	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
 // ConfigToEdgeConfig translates the friendly config to edgerouter config
@@ -71,9 +72,9 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	}
 	defaultRouter.Service.DHCPServer = _dhcpServer
 
-	_natService := edgeconfig.NatService{Rules: []edgeconfig.NatRule{}}
+	_natService := edgeconfig.NatService{}
 	for _, natRule := range router.NAT {
-		_natService.Rules = append(_natService.Rules, edgeconfig.NatRule{
+		newRule := edgeconfig.NatRule{
 			Name:              natRule.Name,
 			Type:              natRule.Type,
 			InboundInterface:  natRule.InboundInterface,
@@ -82,7 +83,13 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			Log:               edgeconfig.EnableDisable(natRule.Log),
 			OutsideAddress:    natRule.OutsideAddress,
 			InsideAddress:     natRule.InsideAddress,
-		})
+		}
+		if newRule.Type == types.NATTypeDestination {
+			_natService.Dest = append(_natService.Dest, newRule)
+		} else {
+			_natService.Src = append(_natService.Src, newRule)
+		}
+
 	}
 	defaultRouter.Service.NAT = _natService
 

@@ -39,3 +39,8 @@ func (as AutoString) MarshalEdge() ([]byte, error) {
 	val := AutoType[string](string(as))
 	return []byte(val), nil
 }
+
+// MarshalEdgeWithDepth not used for AutoString
+func (as AutoString) MarshalEdgeWithDepth(depth int) ([]byte, error) {
+	return nil, fmt.Errorf("marshaledgewithdepth not implemented for AutoString")
+}
