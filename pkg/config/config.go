@@ -40,7 +40,7 @@ type DHCP struct {
 	Subnet        netip.Prefix `yaml:"subnet"`
 	Router        net.IP       `yaml:"router"`
 	Start         net.IP       `yaml:"start"`
-	End           net.IP       `yaml:"end"`
+	Stop          net.IP       `yaml:"stop"`
 	Lease         uint64       `yaml:"lease"`
 	DNS           []net.IP     `yaml:"dns"`
 }

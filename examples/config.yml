@@ -33,7 +33,7 @@ routers:
         subnet: 10.100.0.0/24
         router: 10.100.0.1
         start: 10.100.0.150
-        end: 10.100.0.254
+        stop: 10.100.0.254
         lease: 86400 # @TODO This should be a default if not set
         # @TODO check if 2 is the limit or if non-ui config will issue more
         # Add validation check either way
@@ -45,7 +45,7 @@ routers:
         subnet: 10.100.1.0/24
         router: 10.100.1.1
         start: 10.100.1.150
-        end: 10.100.1.254
+        stop: 10.100.1.254
         lease: 86400
         dns:
           - 1.1.1.1

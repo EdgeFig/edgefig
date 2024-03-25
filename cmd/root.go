@@ -38,6 +38,35 @@ var rootCmd = &cobra.Command{
 					},
 				},
 			},
+			Service: edgeconfig.RouterServices{
+				DHCPServer: edgeconfig.DHCPServer{
+					Disabled:       false,
+					HostfileUpdate: false,
+					StaticARP:      false,
+					UseDNSMASQ:     false,
+					Networks: []edgeconfig.DHCPNetwork{
+						{
+							Name:          "LAN_10_100_0_X",
+							Authoritative: edgeconfig.Enable,
+							Subnets: []edgeconfig.DHCPSubnet{
+								{
+									Subnet: netip.MustParsePrefix("10.100.0.0/24"),
+									Router: netip.MustParseAddr("10.100.0.1"),
+									DNS: []netip.Addr{
+										netip.MustParseAddr("1.1.1.1"),
+										netip.MustParseAddr("8.8.8.8"),
+									},
+									Lease: 86400,
+									StartStop: edgeconfig.DHCPStartStop{
+										Start: netip.MustParseAddr("10.100.0.150"),
+										Stop:  netip.MustParseAddr("10.100.0.254"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		}
 
 		data, err := edgeconfig.Marshal(cfg)

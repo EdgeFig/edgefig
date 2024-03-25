@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"text/template"
 )
 
 // Marshal takes something in and marshals it according to the edge tags
@@ -24,7 +25,8 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 		return nil // Skip invalid fields (e.g., uninitialized pointers)
 	}
 
-	switch val.Kind() {
+	kind := val.Kind()
+	switch kind {
 	case reflect.Struct:
 		t := val.Type()
 		for i := 0; i < val.NumField(); i++ {
@@ -39,22 +41,59 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 			// Handle recursive types
 			switch field.Kind() {
 			case reflect.Struct:
-				fallthrough
-			case reflect.Map:
-				buffer.WriteString(strings.Repeat(" ", depth) + tag + " {\n")
-				err := marshalValue(buffer, field, depth+4)
+				var err error
+				tag, err = templateTagValues(tag, field)
 				if err != nil {
 					return err
 				}
-				buffer.WriteString(strings.Repeat(" ", depth) + "}\n")
-			case reflect.Slice:
-				for i := 0; i < field.Len(); i++ {
-					sliceElement := field.Index(i)
-					val, err := formatValue(sliceElement)
+				fallthrough
+			case reflect.Map:
+				specificType := field.Type().String()
+				switch specificType {
+				case "netip.Addr":
+					val, err := formatValue(field)
 					if err != nil {
 						return err
 					}
 					buffer.WriteString(fmt.Sprintf("%s%s %s\n", strings.Repeat(" ", depth), tag, val))
+				default:
+					buffer.WriteString(strings.Repeat(" ", depth) + tag + " {\n")
+					err := marshalValue(buffer, field, depth+4)
+					if err != nil {
+						return err
+					}
+					buffer.WriteString(strings.Repeat(" ", depth) + "}\n")
+				}
+			case reflect.Slice:
+				for i := 0; i < field.Len(); i++ {
+					sliceElement := field.Index(i)
+
+					tag, err := templateTagValues(tag, sliceElement)
+					if err != nil {
+						return err
+					}
+					buffer.WriteString(fmt.Sprintf("%s%s ", strings.Repeat(" ", depth), tag))
+
+					typeStr := sliceElement.Type().String()
+					switch typeStr {
+					case "edgeconfig.DHCPNetwork":
+						fallthrough
+					case "edgeconfig.DHCPSubnet":
+						buffer.WriteString("{\n")
+						err = marshalValue(buffer, sliceElement, depth+4)
+						buffer.WriteString(fmt.Sprintf("%s%s", strings.Repeat(" ", depth), "}"))
+						if err != nil {
+							return err
+						}
+					default:
+						val, err := formatValue(sliceElement)
+						if err != nil {
+							return err
+						}
+						buffer.WriteString(val)
+					}
+
+					buffer.WriteString("\n")
 				}
 			default:
 				// Directly marshal field with value.
@@ -99,8 +138,6 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 
 // formatValue converts field values into their EdgeOS string representation.
 func formatValue(val reflect.Value) (string, error) {
-	// Handle any specific types here (e.g., custom types like EnableDisable).
-	// This is a simplification. Adjust as needed for your actual types.
 	switch val.Kind() {
 	case reflect.String:
 		return val.String(), nil
@@ -119,8 +156,25 @@ func formatValue(val reflect.Value) (string, error) {
 			return "false", nil
 		}
 	case reflect.Slice:
-		return "", fmt.Errorf("should not be formatting slices directly - slices indicate repeated statements")
+		specificSlice := val.Type().String()
+		return "", fmt.Errorf("should not be formatting slices directly: %s", specificSlice)
 	default:
 		return fmt.Sprintf("%v", val.Interface()), nil
 	}
+}
+
+// Tags a tag and parses/fills any go templates
+func templateTagValues(tag string, sliceElement reflect.Value) (string, error) {
+	tmpl, err := template.New("tag").Parse(tag)
+	if err != nil {
+		return "", err
+	}
+	var executedTag bytes.Buffer
+	iface := sliceElement.Interface()
+	err = tmpl.Execute(&executedTag, iface)
+	if err != nil {
+		return "", err
+	}
+
+	return executedTag.String(), nil
 }

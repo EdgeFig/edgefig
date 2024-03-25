@@ -8,6 +8,7 @@ import (
 type Router struct {
 	Firewall   Firewall             `edge:"firewall"`
 	Interfaces map[string]Interface `edge:"interface"`
+	Service    RouterServices       `edge:"service"`
 }
 
 // Firewall is the firewall config for routers
@@ -30,4 +31,40 @@ type Interface struct {
 	Duplex  string         `edge:"duplex"`  // @TODO this is likely uint w/ default string auto
 	Speed   string         `edge:"speed"`   // @TODO this is likely uint w/ default string auto
 	MTU     uint16         `edge:"mtu"`     // @TODO this is likely uint w/ default string auto
+}
+
+// RouterServices Available services on the router
+type RouterServices struct {
+	DHCPServer DHCPServer `edge:"dhcp-server"`
+}
+
+// DHCPServer information about enabled DHCP servers
+type DHCPServer struct {
+	Disabled       bool          `edge:"disabled"`
+	HostfileUpdate EnableDisable `edge:"hostfile-update"`
+	StaticARP      EnableDisable `edge:"static-arp"`
+	UseDNSMASQ     EnableDisable `edge:"use-dnsmasq"`
+	Networks       []DHCPNetwork `edge:"shared-network-name {{ .Name }}"`
+}
+
+// DHCPNetwork is a single network managed by the DHCP server
+type DHCPNetwork struct {
+	Name          string
+	Authoritative EnableDisable `edge:"authoritative"`
+	Subnets       []DHCPSubnet  `edge:"subnet {{ .Subnet }}"`
+}
+
+// DHCPSubnet is a subnet within a DHCP Network
+type DHCPSubnet struct {
+	Subnet    netip.Prefix
+	Router    netip.Addr    `edge:"default-router"`
+	Lease     uint64        `edge:"lease"`
+	DNS       []netip.Addr  `edge:"dns-server"`
+	StartStop DHCPStartStop `edge:"start {{ .Start }}"`
+}
+
+// DHCPStartStop is the start/stop range for DHCP Servers
+type DHCPStartStop struct {
+	Start netip.Addr
+	Stop  netip.Addr `edge:"stop"`
 }
