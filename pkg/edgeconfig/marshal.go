@@ -175,7 +175,7 @@ func formatValue(val reflect.Value, omitEmpty bool) (string, error) {
 			return "disable", nil
 		case "DisableProp":
 			if val.Bool() {
-				return "disabled", nil
+				return "disable", nil
 			}
 			return "", nil
 		default:
