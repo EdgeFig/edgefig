@@ -27,13 +27,15 @@ var rootCmd = &cobra.Command{
 			System: edgeconfig.RouterSystem{
 				HostName: "EdgeRouter-Infinity",
 				Login: edgeconfig.RouterLogin{
-					User: edgeconfig.User{
-						Username: "ubnt",
-						Authentication: edgeconfig.Authentication{
-							// This is just the default "ubnt" password
-							EncryptedPassword: "$1$zKNoUbAo$gomzUbYvgyUMcD436Wo66.",
+					Users: []edgeconfig.User{
+						{
+							Username: "ubnt",
+							Authentication: edgeconfig.Authentication{
+								// This is just the default "ubnt" password
+								EncryptedPassword: "$1$zKNoUbAo$gomzUbYvgyUMcD436Wo66.",
+							},
+							Level: types.UserLevelAdmin,
 						},
-						Level: edgeconfig.UserLevelAdmin,
 					},
 				},
 				NTP: edgeconfig.NTPServers{
@@ -77,14 +79,14 @@ var rootCmd = &cobra.Command{
 			Interfaces: edgeconfig.Interfaces{
 				Interfaces: []edgeconfig.Interface{
 					{
-						Type:   edgeconfig.InterfaceTypeEthernet,
-						Name:   "eth0",
-						Enable: edgeconfig.Disabled,
+						Type:  edgeconfig.InterfaceTypeEthernet,
+						Name:  "eth0",
+						State: edgeconfig.Disabled,
 					},
 					{
 						Type:        edgeconfig.InterfaceTypeEthernet,
 						Name:        "eth1",
-						Enable:      edgeconfig.Enabled,
+						State:       edgeconfig.Enabled,
 						Description: "WAN",
 						Address: []netip.Prefix{
 							netip.MustParsePrefix("10.0.0.3/22"),

@@ -47,7 +47,7 @@ const (
 type Interface struct {
 	Type        InterfaceType // @TODO add validation that this is always present, or add default
 	Name        string
-	Enable      DisableProp    `edge:".,omitempty"`
+	State       DisableProp    `edge:".,omitempty"`
 	Description string         `edge:"description,omitempty"`
 	Address     []netip.Prefix `edge:"address"`
 	Duplex      AutoString     `edge:"duplex"`
@@ -58,9 +58,9 @@ type Interface struct {
 // RouterServices Available services on the router
 type RouterServices struct {
 	DHCPServer DHCPServer  `edge:"dhcp-server"`
-	GUI        GUIService  `edge:"gui"`
-	NAT        NatService  `edge:"nat"`
-	SSH        SSHService  `edge:"ssh"`
+	GUI        GUIService  `edge:"gui,omitempty"`
+	NAT        NatService  `edge:"nat,omitempty"`
+	SSH        SSHService  `edge:"ssh,omitempty"`
 	UNMS       UNMSService `edge:"unms"`
 }
 
@@ -133,8 +133,8 @@ type RouterSystem struct {
 	AnalyticsHandler AnalyticsHandler `edge:"analytics-handler"`
 	CrashHandler     CrashHandler     `edge:"crash-handler"`
 	HostName         string           `edge:"host-name"`
-	Login            RouterLogin      `edge:"login"`
-	NTP              NTPServers       `edge:"ntp"`
+	Login            RouterLogin      `edge:"login,omitempty"`
+	NTP              NTPServers       `edge:"ntp,omitempty"`
 	Syslog           Syslog           `edge:"syslog,omitempty"`
 	TimeZone         string           `edge:"time-zone,omitempty"`
 }
@@ -151,22 +151,14 @@ type CrashHandler struct {
 
 // RouterLogin handles user accounts for the router
 type RouterLogin struct {
-	User User `edge:"user {{ .Username }}"`
+	Users []User `edge:"user {{ .Username }}"`
 }
-
-// UserLevel is supported roles for the users
-type UserLevel string
-
-const (
-	// UserLevelAdmin grants admin permissions
-	UserLevelAdmin UserLevel = "admin"
-)
 
 // User is a single router user
 type User struct {
 	Username       string
-	Authentication Authentication `edge:"authentication"`
-	Level          UserLevel      `edge:"level"`
+	Authentication Authentication  `edge:"authentication"`
+	Level          types.UserLevel `edge:"level"`
 }
 
 // Authentication is the auth details for a user

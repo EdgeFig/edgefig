@@ -1,7 +1,6 @@
 package config
 
 import (
-	"net"
 	"net/netip"
 
 	"github.com/cmmarslender/edgefig/pkg/types"
@@ -14,9 +13,9 @@ type Config struct {
 
 // User defines a common struct that represents a user across routers, switches, etc
 type User struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Role     string `yaml:"role"`
+	Username string          `yaml:"username"`
+	Password string          `yaml:"password"`
+	Role     types.UserLevel `yaml:"role"`
 }
 
 // Router is the top level config for a single router
@@ -40,11 +39,11 @@ type DHCP struct {
 	Name          string       `yaml:"name"`
 	Authoritative bool         `yaml:"authoritative"`
 	Subnet        netip.Prefix `yaml:"subnet"`
-	Router        net.IP       `yaml:"router"`
-	Start         net.IP       `yaml:"start"`
-	Stop          net.IP       `yaml:"stop"`
+	Router        netip.Addr   `yaml:"router"`
+	Start         netip.Addr   `yaml:"start"`
+	Stop          netip.Addr   `yaml:"stop"`
 	Lease         uint64       `yaml:"lease"`
-	DNS           []net.IP     `yaml:"dns"`
+	DNS           []netip.Addr `yaml:"dns"`
 }
 
 // NAT configures NAT rules in a router
