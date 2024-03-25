@@ -11,8 +11,13 @@ routers:
     #   speed auto
     # }
     interfaces:
+      eth0:
+        name: LAN_10_100_1_X
+        addresses:
+          - 10.100.1.1/24
+        mtu: 9000
       eth1:
-        name: Internet
+        name: WAN
         addresses:
           - 10.0.0.3/22
           - 2001:db8::/32
@@ -24,6 +29,7 @@ routers:
         mtu: 9000
     dhcp:
       - name: LAN_10_100_0_X
+        authoritative: true
         subnet: 10.100.0.0/24
         router: 10.100.0.1
         start: 10.100.0.150
@@ -34,6 +40,46 @@ routers:
         dns:
           - 1.1.1.1
           - 8.8.8.8
+      - name: LAN_10_100_1_X
+        authoritative: true
+        subnet: 10.100.1.0/24
+        router: 10.100.1.1
+        start: 10.100.1.150
+        end: 10.100.1.254
+        lease: 86400
+        dns:
+          - 1.1.1.1
+          - 8.8.8.8
+    nat:
+      # Rule 1
+      - name: Simple Port Forward
+        type: destination
+        inbound_interface: eth1
+        protocol: tcp # Optional
+        log: false
+        outside_address:
+          address: 10.0.0.4 # The "public" IP address coming in to the router
+          port: 443
+        inside_address:
+          address: 10.100.1.22
+          port: 443
+      # Rule 5000
+      # Changes the outbound IP to an alternate public IP
+      - name: Public IP - Example Host
+        type: source
+        outbound_interface: eth1
+        protocol: all
+        log: false
+        inside_address:
+          address: 10.100.1.22
+        outside_address:
+          address: 10.0.0.4
+      # Rule 5001
+      - name: Masquerade for WAN
+        type: masquerade #@TODO this probably should be a type/enum-ish thing
+        outbound_interface: eth1
+        protocol: all
+        log: false
     users:
       - username: ubnt
         # @TODO this should support reading from ENV
