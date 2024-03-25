@@ -66,10 +66,17 @@ var rootCmd = &cobra.Command{
 						},
 					},
 				},
-				GUI: edgeconfig.GUI{
+				GUI: edgeconfig.GUIService{
 					HTTPPort:     80,
 					HTTPSPort:    443,
 					OlderCiphers: edgeconfig.Disable,
+				},
+				NAT: edgeconfig.NatService{
+
+				},
+				SSH: edgeconfig.SSHService{
+					Port:            22,
+					ProtocolVersion: "v2",
 				},
 			},
 		}

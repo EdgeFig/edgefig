@@ -35,8 +35,11 @@ type Interface struct {
 
 // RouterServices Available services on the router
 type RouterServices struct {
-	DHCPServer DHCPServer `edge:"dhcp-server"`
-	GUI        GUI        `edge:"gui"`
+	DHCPServer DHCPServer  `edge:"dhcp-server"`
+	GUI        GUIService  `edge:"gui"`
+	NAT        NatService  `edge:"nat"`
+	SSH        SSHService  `edge:"ssh"`
+	UNMS       UNMSService `edge:"unms"`
 }
 
 // DHCPServer information about enabled DHCP servers
@@ -71,8 +74,17 @@ type DHCPStartStop struct {
 }
 
 // GUI Settings
-type GUI struct {
+type GUIService struct {
 	HTTPPort     uint16        `edge:"http-port"`
 	HTTPSPort    uint16        `edge:"https-port"`
 	OlderCiphers EnableDisable `edge:"older-ciphers"`
 }
+
+type NatService struct{}
+
+type SSHService struct {
+	Port            uint16 `edge:"port"`
+	ProtocolVersion string `edge:"protocol-version"`
+}
+
+type UNMSService struct{}
