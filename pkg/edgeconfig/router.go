@@ -28,7 +28,7 @@ type Firewall struct {
 	SynCookies           EnableDisable `edge:"syn-cookies"`
 }
 
-// Interfaces wrapps all interfaces in the config
+// Interfaces wraps all interfaces in the config
 type Interfaces struct {
 	Interfaces []Interface `edge:"{{ .Type }} {{ .Name }}"`
 }
@@ -49,7 +49,8 @@ type Interface struct {
 	Name        string
 	State       DisableProp    `edge:".,omitempty"`
 	Description string         `edge:"description,omitempty"`
-	Address     []netip.Prefix `edge:"address"`
+	Address     []netip.Prefix `edge:"address,omitempty"`
+	AddressDHCP string         `edge:"address,omitempty"`
 	Duplex      AutoString     `edge:"duplex"`
 	Speed       AutoString     `edge:"speed"`
 	MTU         uint16         `edge:"mtu,omitempty"`
