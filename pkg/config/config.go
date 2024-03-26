@@ -11,6 +11,14 @@ type Config struct {
 	Routers []Router `yaml:"routers"`
 }
 
+// Connection common details for connecting to devices
+type Connection struct {
+	IP       netip.Addr `yaml:"ip"`
+	Port     uint16     `yaml:"port"`
+	Username string     `yaml:"username"`
+	Password string     `yaml:"password"`
+}
+
 // User defines a common struct that represents a user across routers, switches, etc
 type User struct {
 	Username string          `yaml:"username"`
@@ -21,6 +29,7 @@ type User struct {
 // Router is the top level config for a single router
 type Router struct {
 	Name       string                     `yaml:"name"`
+	Connection
 	Interfaces map[string]RouterInterface `yaml:"interfaces"`
 	DHCP       []DHCP                     `yaml:"dhcp"`
 	NAT        []NAT                      `yaml:"nat"`

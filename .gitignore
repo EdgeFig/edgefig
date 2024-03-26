@@ -5,3 +5,4 @@ bin/
 *.log
 /config.yml
 /config-out
+/config.boot*
