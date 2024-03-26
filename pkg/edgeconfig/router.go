@@ -147,7 +147,9 @@ type NatRule struct {
 	OutboundInterface string           `edge:"outbound-interface,omitempty"`
 	Protocol          types.Protocol   `edge:"protocol,omitempty"`
 	Log               EnableDisable    `edge:"log"`
-	OutsideAddress    types.NATAddress `edge:"destination,omitempty"`
+	Source            types.NATAddress `edge:"source,omitempty"`
+	Destination       types.NATAddress `edge:"destination,omitempty"`
+	OutsideAddress    types.NATAddress `edge:"outside-address,omitempty"`
 	InsideAddress     types.NATAddress `edge:"inside-address,omitempty"`
 }
 
