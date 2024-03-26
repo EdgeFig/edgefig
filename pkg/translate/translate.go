@@ -75,12 +75,12 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	_natService := edgeconfig.NatService{}
 	for _, natRule := range router.NAT {
 		newRule := edgeconfig.NatRule{
-			Name: natRule.Name,
-			Type: natRule.Type,
+			Name:              natRule.Name,
+			Type:              natRule.Type,
 			InboundInterface:  natRule.InboundInterface,
 			OutboundInterface: natRule.OutboundInterface,
-			Protocol:       natRule.Protocol,
-			Log:            edgeconfig.EnableDisable(natRule.Log),
+			Protocol:          natRule.Protocol,
+			Log:               edgeconfig.EnableDisable(natRule.Log),
 		}
 		if newRule.Type == types.NATTypeDestination {
 			newRule.Destination = natRule.OutsideAddress

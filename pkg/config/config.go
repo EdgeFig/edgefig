@@ -28,7 +28,7 @@ type User struct {
 
 // Router is the top level config for a single router
 type Router struct {
-	Name       string                     `yaml:"name"`
+	Name string `yaml:"name"`
 	Connection
 	Interfaces map[string]RouterInterface `yaml:"interfaces"`
 	DHCP       []DHCP                     `yaml:"dhcp"`

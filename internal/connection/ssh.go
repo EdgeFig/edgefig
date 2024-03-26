@@ -66,9 +66,9 @@ func (s *SSHConnection) FetchLiveConfig() ([]byte, error) {
 
 // WriteFile writes a file to the remote host
 func (s *SSHConnection) WriteFile(remotePath string, contents []byte) error {
-	 buf, err := s.remoteCommand(fmt.Sprintf("echo '%s' > %s", string(contents), remotePath))
-	 fmt.Print(buf.String())
-	 return err
+	buf, err := s.remoteCommand(fmt.Sprintf("echo '%s' > %s", string(contents), remotePath))
+	fmt.Print(buf.String())
+	return err
 }
 
 // DeleteFile deletes a file on the remote host
@@ -78,6 +78,7 @@ func (s *SSHConnection) DeleteFile(remotePath string) error {
 	return err
 }
 
+// ApplyConfig applies, commits, and saves the config at the supplied path
 func (s *SSHConnection) ApplyConfig(configPath string) error {
 	commands := []string{
 		"/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper begin",
