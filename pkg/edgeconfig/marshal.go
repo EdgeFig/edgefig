@@ -76,7 +76,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
 				default:
 					if omitEmpty && field.IsZero() {
-						return nil
+						continue
 					}
 					buffer.WriteString(strings.Repeat(" ", depth) + tag + "{\n")
 					err := marshalValue(buffer, field, depth+4)
