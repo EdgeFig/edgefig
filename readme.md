@@ -60,4 +60,4 @@ routers:
 
 ## Apply
 
-Once your configuration is written, you can apply the configuration against all devices by running `edgefix apply`
+Once your configuration is written, you can apply the configuration against all devices by running `edgefig apply`
