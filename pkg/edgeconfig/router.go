@@ -90,11 +90,19 @@ type DHCPNetwork struct {
 
 // DHCPSubnet is a subnet within a DHCP Network
 type DHCPSubnet struct {
-	Subnet    netip.Prefix
-	Router    netip.Addr    `edge:"default-router"`
-	Lease     uint64        `edge:"lease"`
-	DNS       []netip.Addr  `edge:"dns-server"`
-	StartStop DHCPStartStop `edge:"start {{ .Start }}"`
+	Subnet         netip.Prefix
+	Router         netip.Addr          `edge:"default-router"`
+	Lease          uint64              `edge:"lease"`
+	DNS            []netip.Addr        `edge:"dns-server"`
+	StartStop      DHCPStartStop       `edge:"start {{ .Start }}"`
+	StaticMappings []DHCPStaticMapping `edge:"static-mapping {{ .Name }}"`
+}
+
+// DHCPStaticMapping is a single DHCP reservation in this DHCP server
+type DHCPStaticMapping struct {
+	Name       string
+	IPAddress  netip.Addr `edge:"ip-address"`
+	MACAddress string     `edge:"mac-address"`
 }
 
 // DHCPStartStop is the start/stop range for DHCP Servers

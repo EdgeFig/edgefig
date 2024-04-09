@@ -48,14 +48,22 @@ type RouterInterface struct {
 
 // DHCP is a single DHCP config for a single subnet
 type DHCP struct {
-	Name          string       `yaml:"name"`
-	Authoritative bool         `yaml:"authoritative"`
-	Subnet        netip.Prefix `yaml:"subnet"`
-	Router        netip.Addr   `yaml:"router"`
-	Start         netip.Addr   `yaml:"start"`
-	Stop          netip.Addr   `yaml:"stop"`
-	Lease         uint64       `yaml:"lease"`
-	DNS           []netip.Addr `yaml:"dns"`
+	Name          string            `yaml:"name"`
+	Authoritative bool              `yaml:"authoritative"`
+	Subnet        netip.Prefix      `yaml:"subnet"`
+	Router        netip.Addr        `yaml:"router"`
+	Start         netip.Addr        `yaml:"start"`
+	Stop          netip.Addr        `yaml:"stop"`
+	Lease         uint64            `yaml:"lease"`
+	DNS           []netip.Addr      `yaml:"dns"`
+	Reservations  []DHCPReservation `yaml:"reservations"`
+}
+
+// DHCPReservation is a reserved IP by MAC address for a DHCP server
+type DHCPReservation struct {
+	Name string     `yaml:"name"`
+	MAC  string     `yaml:"mac"`
+	IP   netip.Addr `yaml:"ip"`
 }
 
 // NAT configures NAT rules in a router

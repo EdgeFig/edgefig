@@ -87,6 +87,17 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			},
 		}
 
+		for _, reservation := range dhcpCfg.Reservations {
+			_dhcpNetwork.Subnets[0].StaticMappings = append(
+				_dhcpNetwork.Subnets[0].StaticMappings,
+				edgeconfig.DHCPStaticMapping{
+					Name:       reservation.Name,
+					IPAddress:  reservation.IP,
+					MACAddress: reservation.MAC,
+				},
+			)
+		}
+
 		_dhcpServer.Networks = append(_dhcpServer.Networks, _dhcpNetwork)
 	}
 	defaultRouter.Service.DHCPServer = _dhcpServer
