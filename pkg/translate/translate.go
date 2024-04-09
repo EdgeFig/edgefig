@@ -36,7 +36,26 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			_iface.MTU = intCfg.MTU
 		}
 
+		for _, vlanName := range intCfg.VLANs {
+			vlanCfg, err := cfg.GetVLANByName(vlanName)
+			if err != nil {
+				return nil, err
+			}
+
+			edgeVlan := edgeconfig.VLAN{
+				ID:          vlanCfg.ID,
+				Address:     vlanCfg.Address,
+				Description: vlanCfg.Name,
+			}
+			if vlanCfg.MTU > 0 {
+				edgeVlan.MTU = vlanCfg.MTU
+			}
+			_iface.VLANs = append(_iface.VLANs, edgeVlan)
+		}
+
 		// @TODO make some methods to keep references by key vs this hunting/replacing
+		// This iterates the default interfaces and injects our customized config
+		// Since we have to have all interfaces defined, this was an easy way to accomplish that
 		for replI, replInt := range defaultRouter.Interfaces.Interfaces {
 			if replInt.Name == _iface.Name {
 				defaultRouter.Interfaces.Interfaces[replI] = _iface

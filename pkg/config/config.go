@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"net/netip"
 
 	"github.com/cmmarslender/edgefig/pkg/types"
@@ -9,6 +10,7 @@ import (
 // Config is the top level config container
 type Config struct {
 	Routers []Router `yaml:"routers"`
+	VLANs   []VLAN   `yaml:"vlans"`
 }
 
 // Connection common details for connecting to devices
@@ -41,6 +43,7 @@ type RouterInterface struct {
 	Name      string         `yaml:"name"`
 	Addresses []netip.Prefix `yaml:"addresses"`
 	MTU       uint16         `yaml:"mtu"`
+	VLANs     []string       `yaml:"vlans"`
 }
 
 // DHCP is a single DHCP config for a single subnet
@@ -69,3 +72,22 @@ type NAT struct {
 
 // Switch is the top level config for a single switch
 type Switch struct{}
+
+// VLAN defines a single shared VLAN configuration
+type VLAN struct {
+	Name    string       `yaml:"name"`
+	ID      uint16       `yaml:"id"`
+	Address netip.Prefix `yaml:"address"`
+	MTU     uint16       `yaml:"mtu"`
+}
+
+// GetVLANByName returns a VLAN by its name attribute
+func (c *Config) GetVLANByName(name string) (VLAN, error) {
+	for _, vlan := range c.VLANs {
+		if vlan.Name == name {
+			return vlan, nil
+		}
+	}
+
+	return VLAN{}, fmt.Errorf("could not find requested VLAN %s in config", name)
+}

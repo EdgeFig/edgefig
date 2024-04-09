@@ -48,10 +48,19 @@ type Interface struct {
 	Duplex      AutoString     `edge:"duplex"`
 	Speed       AutoString     `edge:"speed"`
 	MTU         uint16         `edge:"mtu,omitempty"`
+	VLANs       []VLAN         `edge:"vif {{ .ID }}"`
 }
 
 // Loopback Special interface struct for loopback
 type Loopback struct {
+}
+
+// VLAN is how a vlan is defined in the router interface
+type VLAN struct {
+	ID          uint16
+	Address     netip.Prefix `edge:"address"`
+	Description string       `edge:"description"`
+	MTU         uint16       `edge:"mtu"`
 }
 
 // RouterServices Available services on the router

@@ -68,7 +68,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 			case reflect.Map:
 				specificType := field.Type().String()
 				switch specificType {
-				case "netip.Addr":
+				case "netip.Prefix", "netip.Addr":
 					val, err := formatValue(field, omitEmpty)
 					if err != nil {
 						return err
