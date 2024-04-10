@@ -67,6 +67,12 @@ routers:
         announcements:
           - 10.0.0.0/24 # These networks are announced to our peer
           - 10.0.1.0/24 # These networks are announced to our peer
+    routes:
+      # If not getting a default route from BGP, you need to define one
+      - description: Internet
+        route: 0.0.0.0/0
+        next-hop: 10.0.0.1
+        distance: 1
     nat:
       # Rule 1
       - name: Simple Port Forward
