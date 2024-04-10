@@ -49,16 +49,16 @@ type RouterInterface struct {
 
 // BGP Defines a single BGP configuration for an AS
 type BGP struct {
-	ASN   uint32    `yaml:"asn"`
-	Peers []BGPPeer `yaml:"peers"`
+	ASN           uint32         `yaml:"asn"`
+	Peers         []BGPPeer      `yaml:"peers"`
+	Announcements []netip.Prefix `yaml:"announcements"`
 }
 
 // BGPPeer is a peer and its configuration for a given BGP session
 type BGPPeer struct {
-	IP              netip.Addr     `yaml:"ip"`
-	ASN             uint32         `yaml:"asn"`
-	AnnounceDefault bool           `yaml:"announce-default"`
-	Announcements   []netip.Prefix `yaml:"announcements"`
+	IP              netip.Addr `yaml:"ip"`
+	ASN             uint32     `yaml:"asn"`
+	AnnounceDefault bool       `yaml:"announce-default"`
 }
 
 // DHCP is a single DHCP config for a single subnet
