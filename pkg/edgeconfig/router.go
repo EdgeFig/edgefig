@@ -12,10 +12,11 @@ import (
 
 // Router is the top level config that applies to EdgeRouters
 type Router struct {
-	Firewall   Firewall       `edge:"firewall"`
-	Interfaces Interfaces     `edge:"interfaces"`
-	Service    RouterServices `edge:"service"`
-	System     RouterSystem   `edge:"system"`
+	Firewall   Firewall        `edge:"firewall"`
+	Interfaces Interfaces      `edge:"interfaces"`
+	Protocols  RouterProtocols `edge:"protocols,omitempty"`
+	Service    RouterServices  `edge:"service"`
+	System     RouterSystem    `edge:"system"`
 }
 
 // Firewall is the firewall config for routers
@@ -61,6 +62,47 @@ type VLAN struct {
 	Address     netip.Prefix `edge:"address"`
 	Description string       `edge:"description"`
 	MTU         uint16       `edge:"mtu"`
+}
+
+// RouterProtocols is the configuration for protocols on the router (BGP, etc)
+type RouterProtocols struct {
+	BGP []BGPConfig `edge:"bgp {{ .ASN }}"`
+}
+
+// BGPConfig is the configuration for a single one of our ASNs
+type BGPConfig struct {
+	ASN        uint32
+	Neighbors  []BGPNeighbor `edge:"neighbor {{ .IP }}"`
+	Networks   []BGPNetwork  `edge:"network {{ .Prefix }}"`
+	Parameters BGPParameters `edge:"parameters"`
+}
+
+// BGPNeighbor Is a connection to a BGP peer for a single ASN
+type BGPNeighbor struct {
+	IP                  netip.Addr
+	ASN                 uint32                 `edge:"remote-as"`
+	DefaultOriginate    BGPDefaultOriginate    `edge:"default-originate,omitempty"`
+	SoftReconfiguration BGPSoftReconfiguration `edge:"soft-reconfiguration,omitempty"`
+}
+
+// BGPNetwork is a single network announced to a peer
+type BGPNetwork struct {
+	Prefix netip.Prefix
+}
+
+// BGPDefaultOriginate struct to help get the proper formatting for this option
+type BGPDefaultOriginate struct {
+	Originate bool
+}
+
+// BGPSoftReconfiguration soft-reconfiguration
+type BGPSoftReconfiguration struct {
+	Inbound KeyWhenEnabled `edge:"inbound,omitempty"`
+}
+
+// BGPParameters is the parameters of the BGP connection
+type BGPParameters struct {
+	RouterID string `edge:"router-id"`
 }
 
 // RouterServices Available services on the router

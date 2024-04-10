@@ -63,6 +63,37 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 		}
 	}
 
+	for _, bgpCfg := range router.BGP {
+		edgeBGPConfig := edgeconfig.BGPConfig{
+			ASN:       bgpCfg.ASN,
+			Neighbors: make([]edgeconfig.BGPNeighbor, 0),
+			Parameters: edgeconfig.BGPParameters{
+				RouterID: router.Name,
+			},
+		}
+
+		for _, bgpPeer := range bgpCfg.Peers {
+			nbr := edgeconfig.BGPNeighbor{
+				IP:  bgpPeer.IP,
+				ASN: bgpPeer.ASN,
+				DefaultOriginate: edgeconfig.BGPDefaultOriginate{
+					Originate: bgpPeer.AnnounceDefault,
+				},
+				SoftReconfiguration: edgeconfig.BGPSoftReconfiguration{
+					Inbound: edgeconfig.KeyWhenEnabled(true),
+				},
+			}
+
+			edgeBGPConfig.Neighbors = append(edgeBGPConfig.Neighbors, nbr)
+		}
+
+		for _, prefix := range bgpCfg.Announcements {
+			edgeBGPConfig.Networks = append(edgeBGPConfig.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
+		}
+
+		defaultRouter.Protocols.BGP = append(defaultRouter.Protocols.BGP, edgeBGPConfig)
+	}
+
 	_dhcpServer := edgeconfig.DHCPServer{
 		Disabled:       len(router.DHCP) == 0,
 		HostfileUpdate: false,
