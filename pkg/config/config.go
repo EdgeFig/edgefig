@@ -33,6 +33,7 @@ type Router struct {
 	Name string `yaml:"name"`
 	Connection
 	Interfaces map[string]RouterInterface `yaml:"interfaces"`
+	BGP        []BGP                      `yaml:"bgp"`
 	DHCP       []DHCP                     `yaml:"dhcp"`
 	NAT        []NAT                      `yaml:"nat"`
 	Users      []User                     `yaml:"users"`
@@ -44,6 +45,20 @@ type RouterInterface struct {
 	Addresses []netip.Prefix `yaml:"addresses"`
 	MTU       uint16         `yaml:"mtu"`
 	VLANs     []string       `yaml:"vlans"`
+}
+
+// BGP Defines a single BGP configuration for an AS
+type BGP struct {
+	ASN   uint32    `yaml:"asn"`
+	Peers []BGPPeer `yaml:"peers"`
+}
+
+// BGPPeer is a peer and its configuration for a given BGP session
+type BGPPeer struct {
+	IP              netip.Addr     `yaml:"ip"`
+	ASN             uint32         `yaml:"asn"`
+	AnnounceDefault bool           `yaml:"announce-default"`
+	Announcements   []netip.Prefix `yaml:"announcements"`
 }
 
 // DHCP is a single DHCP config for a single subnet
