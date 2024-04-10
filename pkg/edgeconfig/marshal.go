@@ -73,17 +73,17 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					if err != nil {
 						return err
 					}
-					buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
+					bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
 				default:
 					if omitEmpty && field.IsZero() {
 						continue
 					}
-					buffer.WriteString(strings.Repeat(" ", depth) + tag + "{\n")
+					bufferWriteHelper(buffer, strings.Repeat(" ", depth)+tag+"{\n")
 					err := marshalValue(buffer, field, depth+4)
 					if err != nil {
 						return err
 					}
-					buffer.WriteString(strings.Repeat(" ", depth) + "}\n")
+					bufferWriteHelper(buffer, strings.Repeat(" ", depth)+"}\n")
 				}
 			case reflect.Slice:
 				for i := 0; i < field.Len(); i++ {
@@ -93,7 +93,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					if err != nil {
 						return err
 					}
-					buffer.WriteString(fmt.Sprintf("%s%s", strings.Repeat(" ", depth), tag))
+					bufferWriteHelper(buffer, fmt.Sprintf("%s%s", strings.Repeat(" ", depth), tag))
 
 					typeStr := sliceElement.Type().String()
 					switch typeStr {
@@ -102,17 +102,17 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 						if err != nil {
 							return err
 						}
-						buffer.WriteString(val)
+						bufferWriteHelper(buffer, val)
 					default:
-						buffer.WriteString("{\n")
+						bufferWriteHelper(buffer, "{\n")
 						err = marshalValue(buffer, sliceElement, depth+4)
-						buffer.WriteString(fmt.Sprintf("%s%s", strings.Repeat(" ", depth), "}"))
+						bufferWriteHelper(buffer, fmt.Sprintf("%s%s", strings.Repeat(" ", depth), "}"))
 						if err != nil {
 							return err
 						}
 					}
 
-					buffer.WriteString("\n")
+					bufferWriteHelper(buffer, "\n")
 				}
 			default:
 				// Directly marshal field with value.
@@ -121,7 +121,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					return err
 				}
 				if !omitEmpty || (fieldValue != "") {
-					buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, fieldValue))
+					bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, fieldValue))
 				}
 			}
 		}
@@ -138,18 +138,18 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 			case reflect.Struct:
 				fallthrough
 			case reflect.Map:
-				buffer.WriteString(strings.Repeat(" ", depth) + keyValue + " {\n")
+				bufferWriteHelper(buffer, strings.Repeat(" ", depth)+keyValue+" {\n")
 				err := marshalValue(buffer, value, depth+4)
 				if err != nil {
 					return err
 				}
-				buffer.WriteString(strings.Repeat(" ", depth) + "}\n")
+				bufferWriteHelper(buffer, strings.Repeat(" ", depth)+"}\n")
 			default:
 				valueValue, err := formatValue(value, false) // @TODO omitempty support here
 				if err != nil {
 					return err
 				}
-				buffer.WriteString(fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), keyValue, valueValue))
+				bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), keyValue, valueValue))
 			}
 		}
 	}
@@ -188,6 +188,12 @@ func formatValue(val reflect.Value, omitEmpty bool) (string, error) {
 		case "DisableProp":
 			if val.Bool() {
 				return "disable", nil
+			}
+			return "", nil
+		case "KeyWhenEnabled":
+			if val.Bool() {
+				// Space so that the key is shown even if omitempty
+				return " ", nil
 			}
 			return "", nil
 		default:
@@ -262,4 +268,14 @@ func parseEdgeTag(tag string) (string, bool) {
 	}
 
 	return tag, omitEmpty
+}
+
+func bufferWriteHelper(buffer *bytes.Buffer, str string) {
+	for {
+		if !strings.Contains(str, " \n") {
+			break
+		}
+		str = strings.ReplaceAll(str, " \n", "\n")
+	}
+	buffer.WriteString(str)
 }

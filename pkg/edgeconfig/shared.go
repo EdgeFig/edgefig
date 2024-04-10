@@ -20,3 +20,6 @@ const (
 	// Enabled is the state for "enabled" and nothing will show up in the config
 	Enabled DisableProp = false
 )
+
+// KeyWhenEnabled shows the key and nothing else only when true
+type KeyWhenEnabled bool
