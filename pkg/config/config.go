@@ -50,6 +50,7 @@ type RouterInterface struct {
 // BGP Defines a single BGP configuration for an AS
 type BGP struct {
 	ASN           uint32         `yaml:"asn"`
+	IP            netip.Addr     `yaml:"ip"`
 	Peers         []BGPPeer      `yaml:"peers"`
 	Announcements []netip.Prefix `yaml:"announcements"`
 }

@@ -68,7 +68,7 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			ASN:       bgpCfg.ASN,
 			Neighbors: make([]edgeconfig.BGPNeighbor, 0),
 			Parameters: edgeconfig.BGPParameters{
-				RouterID: router.Name,
+				RouterID: bgpCfg.IP.String(),
 			},
 		}
 
