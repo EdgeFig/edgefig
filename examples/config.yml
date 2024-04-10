@@ -12,9 +12,9 @@ routers:
     # }
     interfaces:
       eth0:
-        name: LAN_10_100_1_X
+        name: Static Config
         addresses:
-          - 10.100.1.1/24
+          - 192.168.1.1/24
         mtu: 9000
       eth1:
         name: WAN
@@ -26,6 +26,13 @@ routers:
         name: LAN_10_100_0_X
         addresses:
           - 10.100.0.1/24
+        mtu: 9000
+        vlans:
+          - work
+      eth3:
+        name: LAN_10_100_1_X
+        addresses:
+          - 10.100.1.1/24
         mtu: 9000
     dhcp:
       - name: LAN_10_100_0_X
@@ -50,6 +57,16 @@ routers:
         dns:
           - 1.1.1.1
           - 8.8.8.8
+    bgp:
+      - asn: 65535 # This is our ASN
+        ip: 10.0.102.57 # Used as our router-id, usually just use your end of the IP assignment from ISP here
+        peers:
+          - ip: 10.0.102.56
+            asn: 64512 # This is our peer/ISP's ASN
+            announce-default: false # If you were on the ISP side and wanted to announce a default route, set to true
+        announcements:
+          - 10.0.0.0/24 # These networks are announced to our peer
+          - 10.0.1.0/24 # These networks are announced to our peer
     nat:
       # Rule 1
       - name: Simple Port Forward
@@ -93,5 +110,8 @@ routers:
 #firewall:
 #  - <rule>
 
-#vlans:
-#  -
+vlans:
+  - name: work
+    id: 15
+    address: 10.100.2.1/24
+    mtu: 9000
