@@ -94,6 +94,19 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 		defaultRouter.Protocols.BGP = append(defaultRouter.Protocols.BGP, edgeBGPConfig)
 	}
 
+	for _, staticRoute := range router.Routes {
+		edgeRouteConfig := edgeconfig.StaticRoute{
+			Route: staticRoute.Route,
+			NextHop: edgeconfig.NextHop{
+				NextHop:     staticRoute.NextHop,
+				Description: staticRoute.Description,
+				Distance:    staticRoute.Distance,
+			},
+		}
+
+		defaultRouter.Protocols.Static.Routes = append(defaultRouter.Protocols.Static.Routes, edgeRouteConfig)
+	}
+
 	_dhcpServer := edgeconfig.DHCPServer{
 		Disabled:       len(router.DHCP) == 0,
 		HostfileUpdate: false,

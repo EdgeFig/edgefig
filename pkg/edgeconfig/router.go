@@ -66,7 +66,8 @@ type VLAN struct {
 
 // RouterProtocols is the configuration for protocols on the router (BGP, etc)
 type RouterProtocols struct {
-	BGP []BGPConfig `edge:"bgp {{ .ASN }}"`
+	BGP    []BGPConfig    `edge:"bgp {{ .ASN }}"`
+	Static StaticProtocol `edge:"static,omitempty"`
 }
 
 // BGPConfig is the configuration for a single one of our ASNs
@@ -103,6 +104,24 @@ type BGPSoftReconfiguration struct {
 // BGPParameters is the parameters of the BGP connection
 type BGPParameters struct {
 	RouterID string `edge:"router-id"`
+}
+
+// StaticProtocol Wraps all static routes
+type StaticProtocol struct {
+	Routes []StaticRoute `edge:"route {{ .Route }}"`
+}
+
+// StaticRoute is a static route in edgeconfig format
+type StaticRoute struct {
+	Route   netip.Prefix
+	NextHop NextHop `edge:"next-hop {{ .NextHop }}"`
+}
+
+// NextHop is the next hop for the route
+type NextHop struct {
+	NextHop     netip.Addr
+	Description string `edge:"description"`
+	Distance    uint8  `edge:"distance"`
 }
 
 // RouterServices Available services on the router

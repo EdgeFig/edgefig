@@ -34,6 +34,7 @@ type Router struct {
 	Connection
 	Interfaces map[string]RouterInterface `yaml:"interfaces"`
 	BGP        []BGP                      `yaml:"bgp"`
+	Routes     []StaticRoute              `yaml:"routes"`
 	DHCP       []DHCP                     `yaml:"dhcp"`
 	NAT        []NAT                      `yaml:"nat"`
 	Users      []User                     `yaml:"users"`
@@ -60,6 +61,14 @@ type BGPPeer struct {
 	IP              netip.Addr `yaml:"ip"`
 	ASN             uint32     `yaml:"asn"`
 	AnnounceDefault bool       `yaml:"announce-default"`
+}
+
+// StaticRoute is a statically configured route in the router
+type StaticRoute struct {
+	Description string       `yaml:"description"`
+	Route       netip.Prefix `yaml:"route"`
+	NextHop     netip.Addr   `yaml:"next-hop"`
+	Distance    uint8        `yaml:"distance"`
 }
 
 // DHCP is a single DHCP config for a single subnet
