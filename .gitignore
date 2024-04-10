@@ -3,6 +3,6 @@ main
 bin/
 .idea/*
 *.log
-/config.yml
+/config*.yml
 /config-out
 /config.boot*

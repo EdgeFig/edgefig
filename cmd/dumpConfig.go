@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cmmarslender/edgefig/pkg/config"
 	"github.com/cmmarslender/edgefig/pkg/edgeconfig"
@@ -16,7 +17,7 @@ var dumpConfigCmd = &cobra.Command{
 	Use:   "dump-config",
 	Short: "Dumps the generated configs to files",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.LoadConfig("config.yml")
+		cfg, err := config.LoadConfig(viper.GetString("config"))
 		if err != nil {
 			log.Fatalln(err.Error())
 		}

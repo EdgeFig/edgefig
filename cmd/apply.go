@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cmmarslender/edgefig/internal/connection"
 	"github.com/cmmarslender/edgefig/internal/util"
@@ -21,7 +22,7 @@ var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Applies the configuration to all devices",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := config.LoadConfig("config.yml")
+		cfg, err := config.LoadConfig(viper.GetString("config"))
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
