@@ -15,43 +15,43 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 			Interfaces: []edgeconfig.Interface{
 				{
 					Name:  "eth0",
-					State: edgeconfig.Enabled,
+					State: types.Enabled,
 					Address: []netip.Prefix{
 						netip.MustParsePrefix("192.168.1.1/24"),
 					},
 				},
 				{
 					Name:        "eth1",
-					State:       edgeconfig.Enabled,
+					State:       types.Enabled,
 					AddressDHCP: "dhcp",
 				},
 				{
 					Name:  "eth2",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 				{
 					Name:  "eth3",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 				{
 					Name:  "eth4",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 				{
 					Name:  "eth5",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 				{
 					Name:  "eth6",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 				{
 					Name:  "eth7",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 				{
 					Name:  "eth8",
-					State: edgeconfig.Disabled,
+					State: types.Disabled,
 				},
 			},
 		},
@@ -104,7 +104,7 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 			GUI: edgeconfig.GUIService{
 				HTTPPort:     80,
 				HTTPSPort:    443,
-				OlderCiphers: edgeconfig.Disable, // Default is usually enabled
+				OlderCiphers: types.Disable, // Default is usually enabled
 			},
 			SSH: edgeconfig.SSHService{
 				Port:            22,

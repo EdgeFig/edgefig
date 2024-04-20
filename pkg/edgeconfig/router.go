@@ -21,16 +21,43 @@ type Router struct {
 
 // Firewall is the firewall config for routers
 type Firewall struct {
-	AllPing              EnableDisable `edge:"all-ping"`
-	BroadcastPing        EnableDisable `edge:"broadcast-ping"`
-	IPv6ReceiveRedirects EnableDisable `edge:"ipv6-receive-redirects"`
-	IPv6SrcRoute         EnableDisable `edge:"ipv6-src-route"`
-	IPSrcRoute           EnableDisable `edge:"ip-src-route"`
-	LogMartians          EnableDisable `edge:"log-martians"`
-	ReceiveRedirects     EnableDisable `edge:"receive-redirects"`
-	SendRedirects        EnableDisable `edge:"send-redirects"`
-	SourceValidation     EnableDisable `edge:"source-validation"`
-	SynCookies           EnableDisable `edge:"syn-cookies"`
+	AllPing              types.EnableDisable `edge:"all-ping"`
+	BroadcastPing        types.EnableDisable `edge:"broadcast-ping"`
+	IPv6ReceiveRedirects types.EnableDisable `edge:"ipv6-receive-redirects"`
+	IPv6SrcRoute         types.EnableDisable `edge:"ipv6-src-route"`
+	IPSrcRoute           types.EnableDisable `edge:"ip-src-route"`
+	LogMartians          types.EnableDisable `edge:"log-martians"`
+	ReceiveRedirects     types.EnableDisable `edge:"receive-redirects"`
+	SendRedirects        types.EnableDisable `edge:"send-redirects"`
+	SourceValidation     types.EnableDisable `edge:"source-validation"`
+	SynCookies           types.EnableDisable `edge:"syn-cookies"`
+	Group                FirewallGroup       `edge:"group"`
+	Zones                []FirewallZone      `edge:"{{ .NamePrefix }}name {{ .Name }}"`
+}
+
+// FirewallGroup groups for the firewall
+type FirewallGroup struct{}
+
+// FirewallZone is a specific zone for the firewall
+type FirewallZone struct {
+	NamePrefix    string
+	Name          string
+	DefaultAction string         `edge:"default-action"`
+	Description   string         `edge:"description"`
+	Rules         []FirewallRule `edge:"rule {{ .Index }}"`
+}
+
+// FirewallRule is a single rule within a firewall zone
+type FirewallRule struct {
+	Action      string              `edge:"action"`
+	Description string              `edge:"description"`
+	Destination types.AddressPort   `edge:"destination"`
+	Log         types.EnableDisable `edge:"log"`
+	Protocol    types.Protocol      `edge:"protocol"`
+	Established types.EnableDisable `edge:"established"`
+	Invalid     types.EnableDisable `edge:"invalid"`
+	New         types.EnableDisable `edge:"new"`
+	Related     types.EnableDisable `edge:"related"`
 }
 
 // Interfaces wraps all interfaces in the config
@@ -42,14 +69,14 @@ type Interfaces struct {
 // Interface is a single interface on the router
 type Interface struct {
 	Name        string
-	State       DisableProp    `edge:".,omitempty"`
-	Description string         `edge:"description,omitempty"`
-	Address     []netip.Prefix `edge:"address,omitempty"`
-	AddressDHCP string         `edge:"address,omitempty"`
-	Duplex      AutoString     `edge:"duplex"`
-	Speed       AutoString     `edge:"speed"`
-	MTU         uint16         `edge:"mtu,omitempty"`
-	VLANs       []VLAN         `edge:"vif {{ .ID }}"`
+	State       types.DisableProp `edge:".,omitempty"`
+	Description string            `edge:"description,omitempty"`
+	Address     []netip.Prefix    `edge:"address,omitempty"`
+	AddressDHCP string            `edge:"address,omitempty"`
+	Duplex      AutoString        `edge:"duplex"`
+	Speed       AutoUint32        `edge:"speed"`
+	MTU         uint16            `edge:"mtu,omitempty"`
+	VLANs       []VLAN            `edge:"vif {{ .ID }}"`
 }
 
 // Loopback Special interface struct for loopback
@@ -98,7 +125,7 @@ type BGPDefaultOriginate struct {
 
 // BGPSoftReconfiguration soft-reconfiguration
 type BGPSoftReconfiguration struct {
-	Inbound KeyWhenEnabled `edge:"inbound,omitempty"`
+	Inbound types.KeyWhenEnabled `edge:"inbound,omitempty"`
 }
 
 // BGPParameters is the parameters of the BGP connection
@@ -135,18 +162,18 @@ type RouterServices struct {
 
 // DHCPServer information about enabled DHCP servers
 type DHCPServer struct {
-	Disabled       bool          `edge:"disabled"`
-	HostfileUpdate EnableDisable `edge:"hostfile-update"`
-	StaticARP      EnableDisable `edge:"static-arp"`
-	UseDNSMASQ     EnableDisable `edge:"use-dnsmasq"`
-	Networks       []DHCPNetwork `edge:"shared-network-name {{ .Name }}"`
+	Disabled       bool                `edge:"disabled"`
+	HostfileUpdate types.EnableDisable `edge:"hostfile-update"`
+	StaticARP      types.EnableDisable `edge:"static-arp"`
+	UseDNSMASQ     types.EnableDisable `edge:"use-dnsmasq"`
+	Networks       []DHCPNetwork       `edge:"shared-network-name {{ .Name }}"`
 }
 
 // DHCPNetwork is a single network managed by the DHCP server
 type DHCPNetwork struct {
 	Name          string
-	Authoritative EnableDisable `edge:"authoritative"`
-	Subnets       []DHCPSubnet  `edge:"subnet {{ .Subnet }}"`
+	Authoritative types.EnableDisable `edge:"authoritative"`
+	Subnets       []DHCPSubnet        `edge:"subnet {{ .Subnet }}"`
 }
 
 // DHCPSubnet is a subnet within a DHCP Network
@@ -174,9 +201,9 @@ type DHCPStartStop struct {
 
 // GUIService Settings for GUI
 type GUIService struct {
-	HTTPPort     uint16        `edge:"http-port"`
-	HTTPSPort    uint16        `edge:"https-port"`
-	OlderCiphers EnableDisable `edge:"older-ciphers"`
+	HTTPPort     uint16              `edge:"http-port"`
+	HTTPSPort    uint16              `edge:"https-port"`
+	OlderCiphers types.EnableDisable `edge:"older-ciphers"`
 }
 
 // NatService NAT settings
@@ -219,16 +246,16 @@ func (ns NatService) MarshalEdgeWithDepth(depth int) ([]byte, error) {
 
 // NatRule a single NAT rule
 type NatRule struct {
-	Name              string           `edge:"description"`
-	Type              types.NATType    `edge:"type"`
-	InboundInterface  string           `edge:"inbound-interface,omitempty"`
-	OutboundInterface string           `edge:"outbound-interface,omitempty"`
-	Protocol          types.Protocol   `edge:"protocol,omitempty"`
-	Log               EnableDisable    `edge:"log"`
-	Source            types.NATAddress `edge:"source,omitempty"`
-	Destination       types.NATAddress `edge:"destination,omitempty"`
-	OutsideAddress    types.NATAddress `edge:"outside-address,omitempty"`
-	InsideAddress     types.NATAddress `edge:"inside-address,omitempty"`
+	Name              string              `edge:"description"`
+	Type              types.NATType       `edge:"type"`
+	InboundInterface  string              `edge:"inbound-interface,omitempty"`
+	OutboundInterface string              `edge:"outbound-interface,omitempty"`
+	Protocol          types.Protocol      `edge:"protocol,omitempty"`
+	Log               types.EnableDisable `edge:"log"`
+	Source            types.AddressPort   `edge:"source,omitempty"`
+	Destination       types.AddressPort   `edge:"destination,omitempty"`
+	OutsideAddress    types.AddressPort   `edge:"outside-address,omitempty"`
+	InsideAddress     types.AddressPort   `edge:"inside-address,omitempty"`
 }
 
 // SSHService settings for ssh

@@ -33,6 +33,7 @@ type Router struct {
 	Name string `yaml:"name"`
 	Connection
 	Interfaces map[string]RouterInterface `yaml:"interfaces"`
+	Firewall   Firewall                   `yaml:"firewall"`
 	BGP        []BGP                      `yaml:"bgp"`
 	Routes     []StaticRoute              `yaml:"routes"`
 	DHCP       []DHCP                     `yaml:"dhcp"`
@@ -45,7 +46,32 @@ type RouterInterface struct {
 	Name      string         `yaml:"name"`
 	Addresses []netip.Prefix `yaml:"addresses"`
 	MTU       uint16         `yaml:"mtu"`
+	Speed     uint32         `yaml:"speed"`
+	Duplex    string         `yaml:"duplex"`
 	VLANs     []string       `yaml:"vlans"`
+}
+
+// Firewall config for the router firewall
+type Firewall struct {
+	Groups interface{}             `yaml:"groups"`
+	Zones  map[string]FirewallZone `yaml:"zones"`
+}
+
+// FirewallZone a single firewall zone
+type FirewallZone struct {
+	IPType        types.IPAddressType `yaml:"ip-type"`
+	DefaultAction string              `yaml:"default-action"`
+	Description   string              `yaml:"description"`
+	Rules         []FirewallRule      `yaml:"rules"`
+}
+
+// FirewallRule is a single rule within a firewall zone
+type FirewallRule struct {
+	Action      string              `yaml:"action"`
+	Description string              `yaml:"description"`
+	Destination types.NetworkPort   `yaml:"destination"`
+	Log         types.EnableDisable `yaml:"log"`
+	// @TODO add the additional fields here
 }
 
 // BGP Defines a single BGP configuration for an AS
@@ -93,14 +119,14 @@ type DHCPReservation struct {
 
 // NAT configures NAT rules in a router
 type NAT struct {
-	Name              string           `yaml:"name"`
-	Type              types.NATType    `yaml:"type"`
-	InboundInterface  string           `yaml:"inbound_interface"`
-	OutboundInterface string           `yaml:"outbound_interface"`
-	Protocol          types.Protocol   `yaml:"protocol"`
-	Log               bool             `yaml:"log"`
-	InsideAddress     types.NATAddress `yaml:"inside_address"`
-	OutsideAddress    types.NATAddress `yaml:"outside_address"`
+	Name              string            `yaml:"name"`
+	Type              types.NATType     `yaml:"type"`
+	InboundInterface  string            `yaml:"inbound_interface"`
+	OutboundInterface string            `yaml:"outbound_interface"`
+	Protocol          types.Protocol    `yaml:"protocol"`
+	Log               bool              `yaml:"log"`
+	InsideAddress     types.AddressPort `yaml:"inside_address"`
+	OutsideAddress    types.AddressPort `yaml:"outside_address"`
 }
 
 // Switch is the top level config for a single switch

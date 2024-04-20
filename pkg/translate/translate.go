@@ -19,18 +19,37 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	router := cfg.Routers[0]
 
 	defaultRouter := getDefaultRouterConfig()
-	defaultRouter.Firewall.AllPing = edgeconfig.Enable
-	defaultRouter.Firewall.SendRedirects = edgeconfig.Enable
-	defaultRouter.Firewall.SynCookies = edgeconfig.Enable
+	defaultRouter.Firewall.AllPing = types.Enable
+	defaultRouter.Firewall.SendRedirects = types.Enable
+	defaultRouter.Firewall.SynCookies = types.Enable
+
+	// Parse out firewall zones/rules
+	for zoneName, zoneYML := range router.Firewall.Zones {
+		namePrefix := ""
+		if zoneYML.IPType == types.IPAddressTypeV6 {
+			namePrefix = "ipv6-"
+		}
+		_zone := edgeconfig.FirewallZone{
+			NamePrefix:    namePrefix,
+			Name:          zoneName,
+			DefaultAction: zoneYML.DefaultAction,
+			Description:   zoneYML.Description,
+			Rules:         []edgeconfig.FirewallRule{},
+		}
+
+		// @TODO handle rules
+
+		defaultRouter.Firewall.Zones = append(defaultRouter.Firewall.Zones, _zone)
+	}
 
 	for intf, intCfg := range router.Interfaces {
 		_iface := edgeconfig.Interface{
 			Name:        intf,
-			State:       edgeconfig.Enabled,
+			State:       types.Enabled,
 			Description: intCfg.Name,
 			Address:     intCfg.Addresses,
-			//Duplex:      "",
-			//Speed:       "",
+			Speed:       edgeconfig.AutoUint32(intCfg.Speed),
+			Duplex:      edgeconfig.AutoString(intCfg.Duplex),
 		}
 		if intCfg.MTU != 0 {
 			_iface.MTU = intCfg.MTU
@@ -80,7 +99,7 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 					Originate: bgpPeer.AnnounceDefault,
 				},
 				SoftReconfiguration: edgeconfig.BGPSoftReconfiguration{
-					Inbound: edgeconfig.KeyWhenEnabled(true),
+					Inbound: types.KeyWhenEnabled(true),
 				},
 			}
 
@@ -154,7 +173,7 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			InboundInterface:  natRule.InboundInterface,
 			OutboundInterface: natRule.OutboundInterface,
 			Protocol:          natRule.Protocol,
-			Log:               edgeconfig.EnableDisable(natRule.Log),
+			Log:               types.EnableDisable(natRule.Log),
 		}
 		if newRule.Type == types.NATTypeDestination {
 			newRule.Destination = natRule.OutsideAddress
