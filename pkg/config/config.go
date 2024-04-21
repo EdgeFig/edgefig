@@ -63,6 +63,9 @@ type FirewallZone struct {
 	IPType        types.IPAddressType `yaml:"ip-type"`
 	DefaultAction string              `yaml:"default-action"`
 	Description   string              `yaml:"description"`
+	In            []string            `yaml:"in"`
+	Out           []string            `yaml:"out"`
+	Local         []string            `yaml:"local"`
 	Rules         []FirewallRule      `yaml:"rules"`
 }
 

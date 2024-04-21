@@ -44,7 +44,7 @@ type FirewallZone struct {
 	Name          string
 	DefaultAction string         `edge:"default-action"`
 	Description   string         `edge:"description"`
-	Rules         []FirewallRule `edge:"rule {{ .Index }}"`
+	Rules         []FirewallRule `edge:"rule {{ .Count }}"`
 }
 
 // FirewallRule is a single rule within a firewall zone
@@ -74,14 +74,28 @@ type Interfaces struct {
 // Interface is a single interface on the router
 type Interface struct {
 	Name        string
-	State       types.DisableProp `edge:".,omitempty"`
-	Description string            `edge:"description,omitempty"`
-	Address     []netip.Prefix    `edge:"address,omitempty"`
-	AddressDHCP string            `edge:"address,omitempty"`
-	Duplex      AutoString        `edge:"duplex"`
-	Speed       AutoUint32        `edge:"speed"`
-	MTU         uint16            `edge:"mtu,omitempty"`
-	VLANs       []VLAN            `edge:"vif {{ .ID }}"`
+	State       types.DisableProp           `edge:".,omitempty"`
+	Description string                      `edge:"description,omitempty"`
+	Address     []netip.Prefix              `edge:"address,omitempty"`
+	AddressDHCP string                      `edge:"address,omitempty"`
+	Duplex      AutoString                  `edge:"duplex"`
+	Speed       AutoUint32                  `edge:"speed"`
+	MTU         uint16                      `edge:"mtu,omitempty"`
+	VLANs       []VLAN                      `edge:"vif {{ .ID }}"`
+	Firewall    InterfaceFirewallAssignment `edge:"firewall,omitempty"`
+}
+
+// InterfaceFirewallAssignment Maps named firewall zones to an interface
+type InterfaceFirewallAssignment struct {
+	In    InterfaceFirewallZone `edge:"in,omitempty"`
+	Out   InterfaceFirewallZone `edge:"out,omitempty"`
+	Local InterfaceFirewallZone `edge:"local,omitempty"`
+}
+
+// InterfaceFirewallZone The name of the zone for the firewall
+type InterfaceFirewallZone struct {
+	Name   string `edge:"name,omitempty"`
+	V6Name string `edge:"ipv6-name,omitempty"`
 }
 
 // Loopback Special interface struct for loopback
@@ -307,7 +321,8 @@ type User struct {
 
 // Authentication is the auth details for a user
 type Authentication struct {
-	EncryptedPassword string `edge:"encrypted-password"`
+	EncryptedPassword string `edge:"encrypted-password,omitempty"`
+	PlaintextPassword string `edge:"plaintext-password,omitempty"`
 }
 
 // NTPServers wraps the ntp servers in the config

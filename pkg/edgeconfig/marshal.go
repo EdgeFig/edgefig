@@ -79,9 +79,9 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					// Type assert the field value to the specific types and check for emptiness.
 					switch v := fieldValue.(type) {
 					case netip.Prefix:
-						netipIsEmpty = !v.IsValid()  // Check if the Prefix is not valid (empty)
+						netipIsEmpty = !v.IsValid() // Check if the Prefix is not valid (empty)
 					case netip.Addr:
-						netipIsEmpty = !v.IsValid()  // Check if the Addr is not valid (empty)
+						netipIsEmpty = !v.IsValid() // Check if the Addr is not valid (empty)
 					default:
 						// Handle unexpected type if necessary.
 						return fmt.Errorf("unexpected type %T", fieldValue)
@@ -265,6 +265,7 @@ func templateTagValues(tag string, element reflect.Value, index int) (string, er
 		}
 	}
 	data["Index"] = index
+	data["Count"] = index + 1
 
 	err = tmpl.Execute(&executedTag, data)
 	if err != nil {

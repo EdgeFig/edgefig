@@ -23,42 +23,6 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	defaultRouter.Firewall.SendRedirects = types.Enable
 	defaultRouter.Firewall.SynCookies = types.Enable
 
-	// Parse out firewall zones/rules
-	for _, zoneYML := range router.Firewall.Zones {
-		namePrefix := ""
-		if zoneYML.IPType == types.IPAddressTypeV6 {
-			namePrefix = "ipv6-"
-		}
-		_zone := edgeconfig.FirewallZone{
-			NamePrefix:    namePrefix,
-			Name:          zoneYML.Name,
-			DefaultAction: zoneYML.DefaultAction,
-			Description:   zoneYML.Description,
-		}
-
-		for _, ruleYML := range zoneYML.Rules {
-			_rule := edgeconfig.FirewallRule{
-				Action:      ruleYML.Action,
-				Description: ruleYML.Description,
-				Destination: ruleYML.Destination,
-				Log:         ruleYML.Log,
-				Protocol:    ruleYML.Protocol,
-				State: edgeconfig.FirewallRuleState{
-					Established: ruleYML.Established,
-					Invalid:     ruleYML.Invalid,
-					New:         ruleYML.New,
-					Related:     ruleYML.Related,
-				},
-			}
-
-			_zone.Rules = append(_zone.Rules, _rule)
-		}
-
-		// @TODO handle rules
-
-		defaultRouter.Firewall.Zones = append(defaultRouter.Firewall.Zones, _zone)
-	}
-
 	for intf, intCfg := range router.Interfaces {
 		_iface := edgeconfig.Interface{
 			Name:        intf,
@@ -97,6 +61,101 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 				defaultRouter.Interfaces.Interfaces[replI] = _iface
 			}
 		}
+	}
+
+	// Parse out firewall zones/rules
+	for _, zoneYML := range router.Firewall.Zones {
+		namePrefix := ""
+		if zoneYML.IPType == types.IPAddressTypeV6 {
+			namePrefix = "ipv6-"
+		}
+		_zone := edgeconfig.FirewallZone{
+			NamePrefix:    namePrefix,
+			Name:          zoneYML.Name,
+			DefaultAction: zoneYML.DefaultAction,
+			Description:   zoneYML.Description,
+		}
+
+		// Handles Rules
+		for _, ruleYML := range zoneYML.Rules {
+			_rule := edgeconfig.FirewallRule{
+				Action:      ruleYML.Action,
+				Description: ruleYML.Description,
+				Destination: ruleYML.Destination,
+				Log:         ruleYML.Log,
+				Protocol:    ruleYML.Protocol,
+				State: edgeconfig.FirewallRuleState{
+					Established: ruleYML.Established,
+					Invalid:     ruleYML.Invalid,
+					New:         ruleYML.New,
+					Related:     ruleYML.Related,
+				},
+			}
+
+			_zone.Rules = append(_zone.Rules, _rule)
+		}
+
+		// Handles assignment of the zone to interfaces
+		for _, zoneIfaceName := range zoneYML.In {
+			for _ifaceIdx, _iface := range defaultRouter.Interfaces.Interfaces {
+				if _iface.Name == zoneIfaceName {
+					if zoneYML.IPType == types.IPAddressTypeV6 {
+						if _iface.Firewall.In.V6Name != "" {
+							panic("Duplicate zone assigned to interface")
+						}
+						defaultRouter.Interfaces.Interfaces[_ifaceIdx].Firewall.In.V6Name = zoneYML.Name
+						break
+
+					} else {
+						if _iface.Firewall.In.Name != "" {
+							panic("Duplicate zone assigned to interface")
+						}
+						defaultRouter.Interfaces.Interfaces[_ifaceIdx].Firewall.In.Name = zoneYML.Name
+						break
+					}
+				}
+			}
+		}
+		for _, zoneIfaceName := range zoneYML.Local {
+			for _ifaceIdx, _iface := range defaultRouter.Interfaces.Interfaces {
+				if _iface.Name == zoneIfaceName {
+					if zoneYML.IPType == types.IPAddressTypeV6 {
+						if _iface.Firewall.Local.V6Name != "" {
+							panic("Duplicate zone assigned to interface")
+						}
+						defaultRouter.Interfaces.Interfaces[_ifaceIdx].Firewall.Local.V6Name = zoneYML.Name
+						break
+					} else {
+						if _iface.Firewall.Local.Name != "" {
+							panic("Duplicate zone assigned to interface")
+						}
+						defaultRouter.Interfaces.Interfaces[_ifaceIdx].Firewall.Local.Name = zoneYML.Name
+						break
+					}
+				}
+			}
+		}
+		for _, zoneIfaceName := range zoneYML.Out {
+			for _ifaceIdx, _iface := range defaultRouter.Interfaces.Interfaces {
+				if _iface.Name == zoneIfaceName {
+					if zoneYML.IPType == types.IPAddressTypeV6 {
+						if _iface.Firewall.Out.V6Name != "" {
+							panic("Duplicate zone assigned to interface")
+						}
+						defaultRouter.Interfaces.Interfaces[_ifaceIdx].Firewall.Out.V6Name = zoneYML.Name
+						break
+					} else {
+						if _iface.Firewall.Out.Name != "" {
+							panic("Duplicate zone assigned to interface")
+						}
+						defaultRouter.Interfaces.Interfaces[_ifaceIdx].Firewall.Out.Name = zoneYML.Name
+						break
+					}
+				}
+			}
+		}
+
+		defaultRouter.Firewall.Zones = append(defaultRouter.Firewall.Zones, _zone)
 	}
 
 	for _, bgpCfg := range router.BGP {
@@ -207,13 +266,21 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 
 	defaultRouter.System.HostName = router.Name
 	for _, user := range router.Users {
-		defaultRouter.System.Login.Users = append(defaultRouter.System.Login.Users, edgeconfig.User{
+		newUser := edgeconfig.User{
 			Username: user.Username,
 			Authentication: edgeconfig.Authentication{
-				EncryptedPassword: user.Password,
+				PlaintextPassword: user.Password,
 			},
 			Level: user.Role,
-		})
+		}
+
+		if user.Username == "ubnt" {
+			// This is the user in defaults, so we need to overwrite item 0
+			defaultRouter.System.Login.Users[0] = newUser
+		} else {
+			defaultRouter.System.Login.Users = append(defaultRouter.System.Login.Users, newUser)
+		}
+
 	}
 
 	return defaultRouter, nil
