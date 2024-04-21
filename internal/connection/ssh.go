@@ -89,10 +89,12 @@ func (s *SSHConnection) ApplyConfig(configPath string) error {
 
 	for _, cmd := range commands {
 		buf, err := s.remoteCommand(cmd)
+		if buf != nil {
+			fmt.Print(buf.String())
+		}
 		if err != nil {
 			return fmt.Errorf("error running command %s: %w", cmd, err)
 		}
-		fmt.Print(buf.String())
 	}
 
 	return nil
