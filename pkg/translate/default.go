@@ -60,7 +60,7 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 			Login: edgeconfig.RouterLogin{
 				Users: []edgeconfig.User{
 					{
-						Username:       "ubnt",
+						Username: "ubnt",
 						Authentication: edgeconfig.Authentication{
 							EncryptedPassword: "$1$zKNoUbAo$gomzUbYvgyUMcD436Wo66.",
 						},
