@@ -24,17 +24,34 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	defaultRouter.Firewall.SynCookies = types.Enable
 
 	// Parse out firewall zones/rules
-	for zoneName, zoneYML := range router.Firewall.Zones {
+	for _, zoneYML := range router.Firewall.Zones {
 		namePrefix := ""
 		if zoneYML.IPType == types.IPAddressTypeV6 {
 			namePrefix = "ipv6-"
 		}
 		_zone := edgeconfig.FirewallZone{
 			NamePrefix:    namePrefix,
-			Name:          zoneName,
+			Name:          zoneYML.Name,
 			DefaultAction: zoneYML.DefaultAction,
 			Description:   zoneYML.Description,
-			Rules:         []edgeconfig.FirewallRule{},
+		}
+
+		for _, ruleYML := range zoneYML.Rules {
+			_rule := edgeconfig.FirewallRule{
+				Action:      ruleYML.Action,
+				Description: ruleYML.Description,
+				Destination: ruleYML.Destination,
+				Log:         ruleYML.Log,
+				Protocol:    ruleYML.Protocol,
+				State: edgeconfig.FirewallRuleState{
+					Established: ruleYML.Established,
+					Invalid:     ruleYML.Invalid,
+					New:         ruleYML.New,
+					Related:     ruleYML.Related,
+				},
+			}
+
+			_zone.Rules = append(_zone.Rules, _rule)
 		}
 
 		// @TODO handle rules

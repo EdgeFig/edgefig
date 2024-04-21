@@ -3,6 +3,7 @@ package edgeconfig
 import (
 	"bytes"
 	"fmt"
+	"net/netip"
 	"reflect"
 	"strings"
 	"text/template"
@@ -69,10 +70,35 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 				specificType := field.Type().String()
 				switch specificType {
 				case "netip.Prefix", "netip.Addr":
+					// Use reflection to obtain the value of the field as an interface{}.
+					fieldValue := field.Interface()
+
+					// Declare a variable to keep track of whether the value is empty.
+					netipIsEmpty := false
+
+					// Type assert the field value to the specific types and check for emptiness.
+					switch v := fieldValue.(type) {
+					case netip.Prefix:
+						netipIsEmpty = !v.IsValid()  // Check if the Prefix is not valid (empty)
+					case netip.Addr:
+						netipIsEmpty = !v.IsValid()  // Check if the Addr is not valid (empty)
+					default:
+						// Handle unexpected type if necessary.
+						return fmt.Errorf("unexpected type %T", fieldValue)
+					}
+
+					// If the value is empty and omitEmpty is true, skip this field.
+					if netipIsEmpty && omitEmpty {
+						continue
+					}
+
+					// Format the value; formatValue should handle the actual formatting based on type.
 					val, err := formatValue(field, omitEmpty)
 					if err != nil {
 						return err
 					}
+
+					// Write the formatted value to the buffer with proper indentation and field tag.
 					bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
 				default:
 					if omitEmpty && field.IsZero() {

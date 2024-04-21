@@ -53,12 +53,13 @@ type RouterInterface struct {
 
 // Firewall config for the router firewall
 type Firewall struct {
-	Groups interface{}             `yaml:"groups"`
-	Zones  map[string]FirewallZone `yaml:"zones"`
+	Groups interface{}    `yaml:"groups"`
+	Zones  []FirewallZone `yaml:"zones"`
 }
 
 // FirewallZone a single firewall zone
 type FirewallZone struct {
+	Name          string              `yaml:"name"`
 	IPType        types.IPAddressType `yaml:"ip-type"`
 	DefaultAction string              `yaml:"default-action"`
 	Description   string              `yaml:"description"`
@@ -71,7 +72,11 @@ type FirewallRule struct {
 	Description string              `yaml:"description"`
 	Destination types.NetworkPort   `yaml:"destination"`
 	Log         types.EnableDisable `yaml:"log"`
-	// @TODO add the additional fields here
+	Protocol    types.Protocol      `yaml:"protocol"`
+	Established types.EnableDisable `yaml:"established"`
+	Invalid     types.EnableDisable `yaml:"invalid"`
+	New         types.EnableDisable `yaml:"new"`
+	Related     types.EnableDisable `yaml:"related"`
 }
 
 // BGP Defines a single BGP configuration for an AS

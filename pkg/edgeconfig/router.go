@@ -50,10 +50,15 @@ type FirewallZone struct {
 // FirewallRule is a single rule within a firewall zone
 type FirewallRule struct {
 	Action      string              `edge:"action"`
-	Description string              `edge:"description"`
-	Destination types.AddressPort   `edge:"destination"`
+	Description string              `edge:"description,omitempty"`
+	Destination types.NetworkPort   `edge:"destination,omitempty"`
 	Log         types.EnableDisable `edge:"log"`
-	Protocol    types.Protocol      `edge:"protocol"`
+	Protocol    types.Protocol      `edge:"protocol,omitempty"`
+	State       FirewallRuleState   `edge:"state,omitempty"`
+}
+
+// FirewallRuleState connection state settings
+type FirewallRuleState struct {
 	Established types.EnableDisable `edge:"established"`
 	Invalid     types.EnableDisable `edge:"invalid"`
 	New         types.EnableDisable `edge:"new"`
