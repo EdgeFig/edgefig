@@ -154,13 +154,14 @@ type BGPParameters struct {
 
 // StaticProtocol Wraps all static routes
 type StaticProtocol struct {
-	Routes []StaticRoute `edge:"route {{ .Route }}"`
+	Routes []StaticRoute `edge:"route{{ .RouteSuffix }} {{ .Route }}"`
 }
 
 // StaticRoute is a static route in edgeconfig format
 type StaticRoute struct {
-	Route   netip.Prefix
-	NextHop NextHop `edge:"next-hop {{ .NextHop }}"`
+	RouteSuffix string // This is empty for ipv4 and "6" for ipv6, so that we end up with route6 for ipv6
+	Route       netip.Prefix
+	NextHop     NextHop `edge:"next-hop {{ .NextHop }}"`
 }
 
 // NextHop is the next hop for the route

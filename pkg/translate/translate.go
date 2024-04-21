@@ -199,6 +199,10 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			},
 		}
 
+		if staticRoute.NextHop.Is6() {
+			edgeRouteConfig.RouteSuffix = "6"
+		}
+
 		defaultRouter.Protocols.Static.Routes = append(defaultRouter.Protocols.Static.Routes, edgeRouteConfig)
 	}
 
