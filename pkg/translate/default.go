@@ -55,6 +55,100 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 				},
 			},
 		},
+		Policy: edgeconfig.RouterPolicy{
+			PrefixLists: []edgeconfig.PrefixList{
+				{
+					Name: RouteMapV4From,
+					Rules: []edgeconfig.PrefixListRule{
+						{
+							Action: types.Permit,
+							LE:     24,
+							Prefix: netip.MustParsePrefix("0.0.0.0/0"),
+						},
+					},
+				},
+				{
+					Name: RouteMapV4To,
+				},
+				{
+					PrefixListSuffix: "6",
+					Name:             RouteMapV6From,
+					Rules: []edgeconfig.PrefixListRule{
+						{
+							Action: types.Permit,
+							LE:     64,
+							Prefix: netip.MustParsePrefix("0::/0"),
+						},
+					},
+				},
+				{
+					PrefixListSuffix: "6",
+					Name:             RouteMapV6To,
+				},
+			},
+			RouteMaps: []edgeconfig.RouteMap{
+				{
+					Name: RouteMapV4From,
+					Rules: []edgeconfig.RouteMapRule{
+						{
+							Action: types.Permit,
+							Match: edgeconfig.RouteMapMatch{
+								IPv4: edgeconfig.RouteMatchIP{
+									Address: edgeconfig.RouteMapAddress{
+										PrefixList: RouteMapV4From,
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: RouteMapV4To,
+					Rules: []edgeconfig.RouteMapRule{
+						{
+							Action: types.Permit,
+							Match: edgeconfig.RouteMapMatch{
+								IPv4: edgeconfig.RouteMatchIP{
+									Address: edgeconfig.RouteMapAddress{
+										PrefixList: RouteMapV4To,
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: RouteMapV6From,
+					Rules: []edgeconfig.RouteMapRule{
+						{
+							Action: types.Permit,
+							Match: edgeconfig.RouteMapMatch{
+								IPv6: edgeconfig.RouteMatchIP{
+									Address: edgeconfig.RouteMapAddress{
+										PrefixList: RouteMapV6From,
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: RouteMapV6To,
+					Rules: []edgeconfig.RouteMapRule{
+						{
+							Action: types.Permit,
+							Match: edgeconfig.RouteMapMatch{
+								IPv6: edgeconfig.RouteMatchIP{
+									Address: edgeconfig.RouteMapAddress{
+										PrefixList: RouteMapV6To,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		System: edgeconfig.RouterSystem{
 			HostName: "EdgeRouter-Infinity", // @TODO this should be based on the detected router model
 			Login: edgeconfig.RouterLogin{

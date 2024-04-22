@@ -14,9 +14,59 @@ import (
 type Router struct {
 	Firewall   Firewall        `edge:"firewall"`
 	Interfaces Interfaces      `edge:"interfaces"`
+	Policy     RouterPolicy    `edge:"policy"`
 	Protocols  RouterProtocols `edge:"protocols,omitempty"`
 	Service    RouterServices  `edge:"service"`
 	System     RouterSystem    `edge:"system"`
+}
+
+// RouterPolicy is the policy settings for the router
+type RouterPolicy struct {
+	PrefixLists []PrefixList `edge:"prefix-list{{ .PrefixListSuffix }} {{ .Name }}"`
+	RouteMaps   []RouteMap   `edge:"route-map {{ .Name }}"`
+}
+
+// PrefixList is a single prefix list
+type PrefixList struct {
+	PrefixListSuffix string // Will be "6" if ipv6 prefix, to get prefix-list6
+	Name             string
+	Rules            []PrefixListRule `edge:"rule {{ .Count }}"`
+}
+
+// PrefixListRule is a single rule for a prefix list
+type PrefixListRule struct {
+	Action types.PermitDeny `edge:"action"`
+	GE     uint8            `edge:"ge,omitempty"`
+	LE     uint8            `edge:"le,omitempty"`
+	Prefix netip.Prefix     `edge:"prefix"`
+}
+
+// RouteMap is a single route map
+type RouteMap struct {
+	Name  string
+	Rules []RouteMapRule `edge:"rule {{ .Count }}"`
+}
+
+// RouteMapRule A rule for a route map
+type RouteMapRule struct {
+	Action types.PermitDeny `edge:"action"`
+	Match  RouteMapMatch    `edge:"match"`
+}
+
+// RouteMapMatch the match block for route-map
+type RouteMapMatch struct {
+	IPv4 RouteMatchIP `edge:"ip,omitempty"`
+	IPv6 RouteMatchIP `edge:"ipv6,omitempty"`
+}
+
+// RouteMatchIP matches ips for a route map
+type RouteMatchIP struct {
+	Address RouteMapAddress `edge:"address"`
+}
+
+// RouteMapAddress The address block for a route map
+type RouteMapAddress struct {
+	PrefixList string `edge:"prefix-list"`
 }
 
 // Firewall is the firewall config for routers
@@ -147,18 +197,49 @@ type RouterProtocols struct {
 
 // BGPConfig is the configuration for a single one of our ASNs
 type BGPConfig struct {
-	ASN        uint32
-	Neighbors  []BGPNeighbor `edge:"neighbor {{ .IP }}"`
-	Networks   []BGPNetwork  `edge:"network {{ .Prefix }}"`
-	Parameters BGPParameters `edge:"parameters"`
+	ASN           uint32
+	AddressFamily BGPAddressFamily `edge:"address-family,omitempty"`
+	Neighbors     []BGPNeighbor    `edge:"neighbor {{ .IP }}"`
+	Networks      []BGPNetwork     `edge:"network {{ .Prefix }}"`
+	Parameters    BGPParameters    `edge:"parameters"`
+	Redistribute  BGPRedistribute  `edge:"redistribute"`
+}
+
+// BGPAddressFamily is the bgp-address-family section of the config
+type BGPAddressFamily struct {
+	IPv6Unicast BGPIPv6Unicast `edge:"ipv6-unicast"`
+}
+
+// BGPIPv6Unicast ipv6 config related for BGP
+type BGPIPv6Unicast struct {
+	Networks []BGPNetwork `edge:"network {{ .Prefix }}"`
 }
 
 // BGPNeighbor Is a connection to a BGP peer for a single ASN
 type BGPNeighbor struct {
 	IP                  netip.Addr
-	ASN                 uint32                 `edge:"remote-as"`
-	DefaultOriginate    BGPDefaultOriginate    `edge:"default-originate,omitempty"`
-	SoftReconfiguration BGPSoftReconfiguration `edge:"soft-reconfiguration,omitempty"`
+	AddressFamily       BGPNeighborAddressFamily `edge:"address-family,omitempty"`
+	ASN                 uint32                   `edge:"remote-as"`
+	RouteMap            BGPNeighborRouteMap      `edge:"route-map,omitempty"`
+	DefaultOriginate    BGPDefaultOriginate      `edge:"default-originate,omitempty"`
+	SoftReconfiguration BGPSoftReconfiguration   `edge:"soft-reconfiguration,omitempty"`
+	UpdateSource        netip.Addr               `edge:"update-source"`
+}
+
+// BGPNeighborAddressFamily essentially lets us get a route map for v6 connections
+type BGPNeighborAddressFamily struct {
+	IPv6Unicast IPv6UnicastForRouteMap `edge:"ipv6-unicast"`
+}
+
+// IPv6UnicastForRouteMap essentially lets us get a route map for v6 connections
+type IPv6UnicastForRouteMap struct {
+	RouteMap BGPNeighborRouteMap `edge:"route-map,omitempty"`
+}
+
+// BGPNeighborRouteMap is the route maps to use for a neighbor
+type BGPNeighborRouteMap struct {
+	Export string `edge:"export"`
+	Import string `edge:"import"`
 }
 
 // BGPNetwork is a single network announced to a peer
@@ -179,6 +260,13 @@ type BGPSoftReconfiguration struct {
 // BGPParameters is the parameters of the BGP connection
 type BGPParameters struct {
 	RouterID string `edge:"router-id"`
+}
+
+// BGPRedistribute is the redistribute section of the BGP config
+type BGPRedistribute struct {
+	Connected types.KeyWhenEnabled `edge:"connected {}"`
+	Kernel    types.KeyWhenEnabled `edge:"kernel {}"`
+	Static    types.KeyWhenEnabled `edge:"static {}"`
 }
 
 // StaticProtocol Wraps all static routes
