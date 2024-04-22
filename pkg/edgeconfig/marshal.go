@@ -3,6 +3,7 @@ package edgeconfig
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"net/netip"
 	"reflect"
 	"strings"
@@ -53,10 +54,18 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 		for i := 0; i < val.NumField(); i++ {
 			field := val.Field(i)
 			structField := t.Field(i)
-			tag, omitEmpty := parseEdgeTag(structField.Tag.Get("edge"))
+			tag, omitEmpty, inline := parseEdgeTag(structField.Tag.Get("edge"))
 
-			if tag == " " {
+			if tag == " " && !inline {
 				continue // Skip fields without 'edge' tag
+			}
+
+			if inline {
+				err := marshalValue(buffer, field, depth)
+				if err != nil {
+					log.Printf("[ERROR] %s\n", err.Error())
+				}
+				continue
 			}
 
 			// Handle a few specific type edge cases
@@ -285,8 +294,9 @@ func templateTagValues(tag string, element reflect.Value, index int) (string, er
 	return executedTag.String(), nil
 }
 
-func parseEdgeTag(tag string) (string, bool) {
+func parseEdgeTag(tag string) (string, bool, bool) {
 	omitEmpty := false
+	inline := false
 	splits := strings.Split(tag, ",")
 	tag = splits[0]
 
@@ -294,6 +304,8 @@ func parseEdgeTag(tag string) (string, bool) {
 		for _, value := range splits[1:] {
 			if value == "omitempty" {
 				omitEmpty = true
+			} else if value == "inline" {
+				inline = true
 			}
 		}
 	}
@@ -304,7 +316,7 @@ func parseEdgeTag(tag string) (string, bool) {
 		tag = fmt.Sprintf("%s ", tag)
 	}
 
-	return tag, omitEmpty
+	return tag, omitEmpty, inline
 }
 
 func bufferWriteHelper(buffer *bytes.Buffer, str string) {

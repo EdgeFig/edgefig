@@ -98,6 +98,15 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 		}
 	}
 
+	// Parse out firewall groups
+	for _, groupYML := range router.Firewall.Groups.AddressGroups {
+		defaultRouter.Firewall.Group.AddressGroups = append(defaultRouter.Firewall.Group.AddressGroups, edgeconfig.AddressGroup{
+			Name:        groupYML.Name,
+			AddressPort: groupYML.AddressPort,
+			Description: groupYML.Description,
+		})
+	}
+
 	// Parse out firewall zones/rules
 	for _, zoneYML := range router.Firewall.Zones {
 		namePrefix := ""

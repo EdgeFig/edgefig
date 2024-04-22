@@ -81,12 +81,21 @@ type Firewall struct {
 	SendRedirects        types.EnableDisable `edge:"send-redirects"`
 	SourceValidation     types.EnableDisable `edge:"source-validation"`
 	SynCookies           types.EnableDisable `edge:"syn-cookies"`
-	Group                FirewallGroup       `edge:"group"`
+	Group                FirewallGroups      `edge:"group"`
 	Zones                []FirewallZone      `edge:"{{ .NamePrefix }}name {{ .Name }}"`
 }
 
-// FirewallGroup groups for the firewall
-type FirewallGroup struct{}
+// FirewallGroups groups for the firewall
+type FirewallGroups struct {
+	AddressGroups []AddressGroup `edge:"address-group {{ .Name }}"`
+}
+
+// AddressGroup is a single address group in the edgeconfig
+type AddressGroup struct {
+	Name              string
+	types.AddressPort `edge:",inline"`
+	Description       string `edge:"description"`
+}
 
 // FirewallZone is a specific zone for the firewall
 type FirewallZone struct {

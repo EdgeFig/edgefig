@@ -66,8 +66,21 @@ type IPv6Prefix struct {
 
 // Firewall config for the router firewall
 type Firewall struct {
-	Groups interface{}    `yaml:"groups"`
+	Groups FirewallGroups `yaml:"groups"`
 	Zones  []FirewallZone `yaml:"zones"`
+}
+
+// FirewallGroups groups of hosts for use in firewall rules
+type FirewallGroups struct {
+	AddressGroups []AddressGroup `yaml:"address-groups"`
+}
+
+// AddressGroup is an address group for the firewall
+type AddressGroup struct {
+	// @TODO check if this can accept port and all the types of "address"
+	Name              string `yaml:"name"`
+	types.AddressPort `yaml:",inline"`
+	Description       string `yaml:"description"`
 }
 
 // FirewallZone a single firewall zone
