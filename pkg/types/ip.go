@@ -23,6 +23,7 @@ type AddressPort struct {
 	Address netip.Addr   `yaml:"address" edge:"address,omitempty"`
 	Prefix  netip.Prefix `yaml:"prefix" edge:"address,omitempty"`
 	Range   AddressRange `yaml:"range" edge:"address,omitempty"`
+	Group   AddressGroup `yaml:",inline" edge:"group,omitempty"`
 	Port    uint16       `yaml:"port" edge:"port,omitempty"`
 }
 
@@ -30,6 +31,11 @@ type AddressPort struct {
 type AddressRange struct {
 	Start netip.Addr
 	End   netip.Addr
+}
+
+// PortGroup used to specify an IP by group
+type AddressGroup struct {
+	AddressGroup string `yaml:"address-group" edge:"address-group"`
 }
 
 // UnmarshalYAML unmarshals the range 10.0.0.1-10.0.0.5 to the struct representing the Start/End
