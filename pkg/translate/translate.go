@@ -296,10 +296,12 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			Authoritative: true,
 			Subnets: []edgeconfig.DHCPSubnet{
 				{
-					Subnet: dhcpCfg.Subnet,
-					Router: dhcpCfg.Router,
-					Lease:  dhcpCfg.Lease,
-					DNS:    dhcpCfg.DNS,
+					Subnet:          dhcpCfg.Subnet,
+					Router:          dhcpCfg.Router,
+					Lease:           dhcpCfg.Lease,
+					DNS:             dhcpCfg.DNS,
+					Domain:          dhcpCfg.Domain,
+					UnifiController: dhcpCfg.UnifiController,
 					StartStop: edgeconfig.DHCPStartStop{
 						Start: dhcpCfg.Start,
 						Stop:  dhcpCfg.Stop,

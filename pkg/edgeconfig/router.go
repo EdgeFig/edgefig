@@ -326,12 +326,14 @@ type DHCPNetwork struct {
 
 // DHCPSubnet is a subnet within a DHCP Network
 type DHCPSubnet struct {
-	Subnet         netip.Prefix
-	Router         netip.Addr          `edge:"default-router"`
-	DNS            []netip.Addr        `edge:"dns-server"`
-	Lease          uint64              `edge:"lease"`
-	StartStop      DHCPStartStop       `edge:"start {{ .Start }}"`
-	StaticMappings []DHCPStaticMapping `edge:"static-mapping {{ .Name }}"`
+	Subnet          netip.Prefix
+	Router          netip.Addr          `edge:"default-router"`
+	DNS             []netip.Addr        `edge:"dns-server"`
+	Domain          string              `edge:"domain-name,omitempty"`
+	Lease           uint64              `edge:"lease"`
+	StartStop       DHCPStartStop       `edge:"start {{ .Start }}"`
+	StaticMappings  []DHCPStaticMapping `edge:"static-mapping {{ .Name }}"`
+	UnifiController string              `edge:"unifi-controller,omitempty"`
 }
 
 // DHCPStaticMapping is a single DHCP reservation in this DHCP server
