@@ -325,6 +325,10 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	}
 	defaultRouter.Service.DHCPServer = _dhcpServer
 
+	defaultRouter.Service.DNS.Forwarding.CacheSize = router.DNS.Forwarding.CacheSize
+	defaultRouter.Service.DNS.Forwarding.ListenOn = router.DNS.Forwarding.ListenOn
+	defaultRouter.Service.DNS.Forwarding.NameServers = router.DNS.Forwarding.Nameservers
+
 	_natService := edgeconfig.NatService{}
 	for _, natRule := range router.NAT {
 		newRule := edgeconfig.NatRule{

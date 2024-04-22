@@ -119,7 +119,6 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 					}
 					fallthrough
 				case reflect.Map:
-
 					if omitEmpty && field.IsZero() {
 						continue
 					}
@@ -141,7 +140,7 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 
 						typeStr := sliceElement.Type().String()
 						switch typeStr {
-						case "netip.Prefix", "netip.Addr":
+						case "netip.Prefix", "netip.Addr", "string":
 							val, err := formatValue(sliceElement, omitEmpty)
 							if err != nil {
 								return err
@@ -276,13 +275,18 @@ func templateTagValues(tag string, element reflect.Value, index int) (string, er
 	var executedTag bytes.Buffer
 
 	data := make(map[string]interface{})
-	for i := 0; i < element.NumField(); i++ {
-		field := element.Type().Field(i)
-		// If field is public
-		if field.PkgPath == "" {
-			data[field.Name] = element.Field(i).Interface()
+
+	// For structs, add all public fields to the data list for templating
+	if element.Kind() == reflect.Struct {
+		for i := 0; i < element.NumField(); i++ {
+			field := element.Type().Field(i)
+			// If field is public
+			if field.PkgPath == "" {
+				data[field.Name] = element.Field(i).Interface()
+			}
 		}
 	}
+
 	data["Index"] = index
 	data["Count"] = index + 1
 

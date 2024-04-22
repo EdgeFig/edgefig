@@ -302,6 +302,7 @@ type NextHop struct {
 // RouterServices Available services on the router
 type RouterServices struct {
 	DHCPServer DHCPServer  `edge:"dhcp-server"`
+	DNS        DNSService  `edge:"dns,omitempty"`
 	GUI        GUIService  `edge:"gui,omitempty"`
 	NAT        NatService  `edge:"nat,omitempty"`
 	SSH        SSHService  `edge:"ssh,omitempty"`
@@ -348,6 +349,22 @@ type DHCPStartStop struct {
 	Start netip.Addr
 	Stop  netip.Addr `edge:"stop"`
 }
+
+// DNSService Settings for router DNS
+type DNSService struct {
+	Forwarding DNSForwarding `edge:"forwarding,omitempty"`
+	Recursion  DNSRecursion  `edge:"recursion,omitempty"`
+}
+
+// DNSForwarding DNS Forwarding/Caching
+type DNSForwarding struct {
+	CacheSize   uint16       `edge:"cache-size"`
+	ListenOn    []string     `edge:"listen-on"`
+	NameServers []netip.Addr `edge:"name-server"`
+}
+
+// DNSRecursion for recursive resolving - not implemented yet @TODO
+type DNSRecursion struct{}
 
 // GUIService Settings for GUI
 type GUIService struct {

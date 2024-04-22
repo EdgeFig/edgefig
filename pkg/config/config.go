@@ -37,6 +37,7 @@ type Router struct {
 	BGP        []BGP                      `yaml:"bgp"`
 	Routes     []StaticRoute              `yaml:"routes"`
 	DHCP       []DHCP                     `yaml:"dhcp"`
+	DNS        DNS                        `yaml:"dns"`
 	NAT        []NAT                      `yaml:"nat"`
 	Users      []User                     `yaml:"users"`
 }
@@ -155,6 +156,18 @@ type DHCPReservation struct {
 	Name string     `yaml:"name"`
 	MAC  string     `yaml:"mac"`
 	IP   netip.Addr `yaml:"ip"`
+}
+
+// DNS Config for the router
+type DNS struct {
+	Forwarding DNSForwarding `yaml:"forwarding"`
+}
+
+// DNSForwarding is the settings when using dns forwarding
+type DNSForwarding struct {
+	CacheSize   uint16       `yaml:"cache-size"`
+	ListenOn    []string     `yaml:"listen-on"`
+	Nameservers []netip.Addr `yaml:"nameservers"`
 }
 
 // NAT configures NAT rules in a router
