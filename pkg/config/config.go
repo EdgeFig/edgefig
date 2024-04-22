@@ -78,6 +78,7 @@ type FirewallGroups struct {
 // AddressGroup is an address group for the firewall
 type AddressGroup struct {
 	// @TODO check if this can accept port and all the types of "address"
+	// @TODO Probably should accept mutiple addresses/prefixes/etc? (point of a group right?)
 	Name              string `yaml:"name"`
 	types.AddressPort `yaml:",inline"`
 	Description       string `yaml:"description"`
