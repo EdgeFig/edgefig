@@ -33,7 +33,7 @@ type AddressRange struct {
 	End   netip.Addr
 }
 
-// PortGroup used to specify an IP by group
+// AddressGroup used to specify an IP by group
 type AddressGroup struct {
 	AddressGroup string `yaml:"address-group" edge:"address-group"`
 }
