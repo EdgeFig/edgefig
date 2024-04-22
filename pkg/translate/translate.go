@@ -36,6 +36,30 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			_iface.MTU = intCfg.MTU
 		}
 
+		if len(intCfg.IPv6.Prefixes) > 0 {
+			_iface.IPv6.DupAddrDetectTransmits = 1
+			_iface.IPv6.RouterAdvert = edgeconfig.IPv6RouterAdvert{
+				CurHopLimit:     64,
+				LinkMTU:         intCfg.MTU,
+				ManagedFlag:     false,
+				MaxInterval:     600,
+				NameServer:      intCfg.IPv6.Nameserver,
+				OtherConfigFlag: false,
+				ReachableTime:   0,
+				RetransTimer:    0,
+				SendAdvert:      true,
+			}
+
+			for _, prefixYml := range intCfg.IPv6.Prefixes {
+				_iface.IPv6.RouterAdvert.Prefixes = append(_iface.IPv6.RouterAdvert.Prefixes, edgeconfig.IPv6PrefixAdvertisement{
+					Prefix:         prefixYml.Prefix,
+					AutonomousFlag: prefixYml.Autonomous,
+					OnLinkFlag:     true,
+					ValidLifetime:  2592000,
+				})
+			}
+		}
+
 		for _, vlanName := range intCfg.VLANs {
 			vlanCfg, err := cfg.GetVLANByName(vlanName)
 			if err != nil {

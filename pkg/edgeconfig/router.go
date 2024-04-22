@@ -75,14 +75,43 @@ type Interfaces struct {
 type Interface struct {
 	Name        string
 	State       types.DisableProp           `edge:".,omitempty"`
-	Description string                      `edge:"description,omitempty"`
 	Address     []netip.Prefix              `edge:"address,omitempty"`
+	Description string                      `edge:"description,omitempty"`
 	AddressDHCP string                      `edge:"address,omitempty"`
 	Duplex      AutoString                  `edge:"duplex"`
-	Speed       AutoUint32                  `edge:"speed"`
+	IPv6        InterfaceIPv6Settings       `edge:"ipv6,omitempty"`
 	MTU         uint16                      `edge:"mtu,omitempty"`
-	VLANs       []VLAN                      `edge:"vif {{ .ID }}"`
 	Firewall    InterfaceFirewallAssignment `edge:"firewall,omitempty"`
+	Speed       AutoUint32                  `edge:"speed"`
+	VLANs       []VLAN                      `edge:"vif {{ .ID }}"`
+}
+
+// InterfaceIPv6Settings controls ipv6 settings/networks for the interface
+type InterfaceIPv6Settings struct {
+	DupAddrDetectTransmits uint16           `edge:"dup-addr-detect-transmits"`
+	RouterAdvert           IPv6RouterAdvert `edge:"router-advert"`
+}
+
+// IPv6RouterAdvert Advertisement settings for ipv6
+type IPv6RouterAdvert struct {
+	CurHopLimit     uint16                    `edge:"cur-hop-limit"`
+	LinkMTU         uint16                    `edge:"link-mtu"`
+	ManagedFlag     bool                      `edge:"managed-flag"`
+	MaxInterval     uint16                    `edge:"max-interval"`
+	NameServer      netip.Addr                `edge:"name-server"`
+	OtherConfigFlag bool                      `edge:"other-config-flag"`
+	Prefixes        []IPv6PrefixAdvertisement `edge:"prefix {{ .Prefix }}"`
+	ReachableTime   uint16                    `edge:"reachable-time"`
+	RetransTimer    uint16                    `edge:"retrans-timer"`
+	SendAdvert      bool                      `edge:"send-advert"`
+}
+
+// IPv6PrefixAdvertisement A single ipv6 prefix to announce
+type IPv6PrefixAdvertisement struct {
+	Prefix         netip.Prefix
+	AutonomousFlag bool   `edge:"autonomous-flag"`
+	OnLinkFlag     bool   `edge:"on-link-flag"`
+	ValidLifetime  uint32 `edge:"valid-lifetime"`
 }
 
 // InterfaceFirewallAssignment Maps named firewall zones to an interface
@@ -184,9 +213,9 @@ type RouterServices struct {
 type DHCPServer struct {
 	Disabled       bool                `edge:"disabled"`
 	HostfileUpdate types.EnableDisable `edge:"hostfile-update"`
+	Networks       []DHCPNetwork       `edge:"shared-network-name {{ .Name }}"`
 	StaticARP      types.EnableDisable `edge:"static-arp"`
 	UseDNSMASQ     types.EnableDisable `edge:"use-dnsmasq"`
-	Networks       []DHCPNetwork       `edge:"shared-network-name {{ .Name }}"`
 }
 
 // DHCPNetwork is a single network managed by the DHCP server
@@ -200,8 +229,8 @@ type DHCPNetwork struct {
 type DHCPSubnet struct {
 	Subnet         netip.Prefix
 	Router         netip.Addr          `edge:"default-router"`
-	Lease          uint64              `edge:"lease"`
 	DNS            []netip.Addr        `edge:"dns-server"`
+	Lease          uint64              `edge:"lease"`
 	StartStop      DHCPStartStop       `edge:"start {{ .Start }}"`
 	StaticMappings []DHCPStaticMapping `edge:"static-mapping {{ .Name }}"`
 }
@@ -267,15 +296,15 @@ func (ns NatService) MarshalEdgeWithDepth(depth int) ([]byte, error) {
 // NatRule a single NAT rule
 type NatRule struct {
 	Name              string              `edge:"description"`
-	Type              types.NATType       `edge:"type"`
-	InboundInterface  string              `edge:"inbound-interface,omitempty"`
-	OutboundInterface string              `edge:"outbound-interface,omitempty"`
-	Protocol          types.Protocol      `edge:"protocol,omitempty"`
-	Log               types.EnableDisable `edge:"log"`
-	Source            types.AddressPort   `edge:"source,omitempty"`
 	Destination       types.AddressPort   `edge:"destination,omitempty"`
-	OutsideAddress    types.AddressPort   `edge:"outside-address,omitempty"`
+	InboundInterface  string              `edge:"inbound-interface,omitempty"`
 	InsideAddress     types.AddressPort   `edge:"inside-address,omitempty"`
+	Log               types.EnableDisable `edge:"log"`
+	OutboundInterface string              `edge:"outbound-interface,omitempty"`
+	OutsideAddress    types.AddressPort   `edge:"outside-address,omitempty"`
+	Protocol          types.Protocol      `edge:"protocol,omitempty"`
+	Source            types.AddressPort   `edge:"source,omitempty"`
+	Type              types.NATType       `edge:"type"`
 }
 
 // SSHService settings for ssh

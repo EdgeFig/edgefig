@@ -48,7 +48,20 @@ type RouterInterface struct {
 	MTU       uint16         `yaml:"mtu"`
 	Speed     uint32         `yaml:"speed"`
 	Duplex    string         `yaml:"duplex"`
+	IPv6      IPv6Config     `yaml:"ipv6"`
 	VLANs     []string       `yaml:"vlans"`
+}
+
+// IPv6Config configures ipv6 for this interface
+type IPv6Config struct {
+	Nameserver netip.Addr   `yaml:"nameserver"`
+	Prefixes   []IPv6Prefix `yaml:"prefixes"`
+}
+
+// IPv6Prefix a single advertised prefix on this interface
+type IPv6Prefix struct {
+	Prefix     netip.Prefix `yaml:"prefix"`
+	Autonomous bool         `yaml:"autonomous"`
 }
 
 // Firewall config for the router firewall
