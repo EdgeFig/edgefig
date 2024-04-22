@@ -104,6 +104,7 @@ type FirewallRule struct {
 	Destination types.AddressPort   `edge:"destination,omitempty"`
 	Log         types.EnableDisable `edge:"log"`
 	Protocol    types.Protocol      `edge:"protocol,omitempty"`
+	Source      types.AddressPort   `edge:"source,omitempty"`
 	State       FirewallRuleState   `edge:"state,omitempty"`
 }
 

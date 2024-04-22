@@ -125,6 +125,7 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 					New:         ruleYML.New,
 					Related:     ruleYML.Related,
 				},
+				Source: ruleYML.Source,
 			}
 
 			_zone.Rules = append(_zone.Rules, _rule)

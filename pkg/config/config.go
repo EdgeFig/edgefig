@@ -87,6 +87,7 @@ type FirewallRule struct {
 	Action      string              `yaml:"action"`
 	Description string              `yaml:"description"`
 	Destination types.AddressPort   `yaml:"destination"`
+	Source      types.AddressPort   `yaml:"source"`
 	Log         types.EnableDisable `yaml:"log"`
 	Protocol    types.Protocol      `yaml:"protocol"`
 	Established types.EnableDisable `yaml:"established"`
