@@ -86,7 +86,7 @@ type FirewallZone struct {
 type FirewallRule struct {
 	Action      string              `yaml:"action"`
 	Description string              `yaml:"description"`
-	Destination types.NetworkPort   `yaml:"destination"`
+	Destination types.AddressPort   `yaml:"destination"`
 	Log         types.EnableDisable `yaml:"log"`
 	Protocol    types.Protocol      `yaml:"protocol"`
 	Established types.EnableDisable `yaml:"established"`
@@ -117,6 +117,7 @@ type StaticRoute struct {
 	Route       netip.Prefix `yaml:"route"`
 	NextHop     netip.Addr   `yaml:"next-hop"`
 	Distance    uint8        `yaml:"distance"`
+	Interface   string       `yaml:"interface"`
 }
 
 // DHCP is a single DHCP config for a single subnet

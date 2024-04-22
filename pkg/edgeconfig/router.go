@@ -101,7 +101,7 @@ type FirewallZone struct {
 type FirewallRule struct {
 	Action      string              `edge:"action"`
 	Description string              `edge:"description,omitempty"`
-	Destination types.NetworkPort   `edge:"destination,omitempty"`
+	Destination types.AddressPort   `edge:"destination,omitempty"`
 	Log         types.EnableDisable `edge:"log"`
 	Protocol    types.Protocol      `edge:"protocol,omitempty"`
 	State       FirewallRuleState   `edge:"state,omitempty"`
@@ -284,8 +284,9 @@ type StaticRoute struct {
 // NextHop is the next hop for the route
 type NextHop struct {
 	NextHop     netip.Addr
-	Description string `edge:"description"`
-	Distance    uint8  `edge:"distance"`
+	Description string `edge:"description,omitempty"`
+	Distance    uint8  `edge:"distance,omitempty"`
+	Interface   string `edge:"interface,omitempty"`
 }
 
 // RouterServices Available services on the router

@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+
+	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
 // EdgeMarshaller is an interface that indicates customized support to marshal to the edgeconfig format
@@ -57,50 +59,58 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 				continue // Skip fields without 'edge' tag
 			}
 
-			// Handle recursive types
-			switch field.Kind() {
-			case reflect.Struct:
-				var err error
-				tag, err = templateTagValues(tag, field, 0)
+			// Handle a few specific type edge cases
+			specificType := field.Type().String()
+			switch specificType {
+			case "types.AddressRange":
+				addrRange := field.Interface().(types.AddressRange)
+				if !addrRange.Start.IsValid() && !addrRange.End.IsValid() {
+					continue
+				}
+				bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s-%s\n", strings.Repeat(" ", depth), tag, addrRange.Start.String(), addrRange.End.String()))
+			case "netip.Prefix", "netip.Addr":
+				// Use reflection to obtain the value of the field as an interface{}.
+				fieldValue := field.Interface()
+
+				// Declare a variable to keep track of whether the value is empty.
+				netipIsEmpty := false
+
+				// Type assert the field value to the specific types and check for emptiness.
+				switch v := fieldValue.(type) {
+				case netip.Prefix:
+					netipIsEmpty = !v.IsValid() // Check if the Prefix is not valid (empty)
+				case netip.Addr:
+					netipIsEmpty = !v.IsValid() // Check if the Addr is not valid (empty)
+				default:
+					// Handle unexpected type if necessary.
+					return fmt.Errorf("unexpected type %T", fieldValue)
+				}
+
+				// If the value is empty and omitEmpty is true, skip this field.
+				if netipIsEmpty && omitEmpty {
+					continue
+				}
+
+				// Format the value; formatValue should handle the actual formatting based on type.
+				val, err := formatValue(field, omitEmpty)
 				if err != nil {
 					return err
 				}
-				fallthrough
-			case reflect.Map:
-				specificType := field.Type().String()
-				switch specificType {
-				case "netip.Prefix", "netip.Addr":
-					// Use reflection to obtain the value of the field as an interface{}.
-					fieldValue := field.Interface()
 
-					// Declare a variable to keep track of whether the value is empty.
-					netipIsEmpty := false
-
-					// Type assert the field value to the specific types and check for emptiness.
-					switch v := fieldValue.(type) {
-					case netip.Prefix:
-						netipIsEmpty = !v.IsValid() // Check if the Prefix is not valid (empty)
-					case netip.Addr:
-						netipIsEmpty = !v.IsValid() // Check if the Addr is not valid (empty)
-					default:
-						// Handle unexpected type if necessary.
-						return fmt.Errorf("unexpected type %T", fieldValue)
-					}
-
-					// If the value is empty and omitEmpty is true, skip this field.
-					if netipIsEmpty && omitEmpty {
-						continue
-					}
-
-					// Format the value; formatValue should handle the actual formatting based on type.
-					val, err := formatValue(field, omitEmpty)
+				// Write the formatted value to the buffer with proper indentation and field tag.
+				bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
+			default:
+				// Handle recursive types
+				switch field.Kind() {
+				case reflect.Struct:
+					var err error
+					tag, err = templateTagValues(tag, field, 0)
 					if err != nil {
 						return err
 					}
+					fallthrough
+				case reflect.Map:
 
-					// Write the formatted value to the buffer with proper indentation and field tag.
-					bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, val))
-				default:
 					if omitEmpty && field.IsZero() {
 						continue
 					}
@@ -110,44 +120,44 @@ func marshalValue(buffer *bytes.Buffer, val reflect.Value, depth int) error {
 						return err
 					}
 					bufferWriteHelper(buffer, strings.Repeat(" ", depth)+"}\n")
-				}
-			case reflect.Slice:
-				for i := 0; i < field.Len(); i++ {
-					sliceElement := field.Index(i)
+				case reflect.Slice:
+					for i := 0; i < field.Len(); i++ {
+						sliceElement := field.Index(i)
 
-					tag, err := templateTagValues(tag, sliceElement, i)
+						tag, err := templateTagValues(tag, sliceElement, i)
+						if err != nil {
+							return err
+						}
+						bufferWriteHelper(buffer, fmt.Sprintf("%s%s", strings.Repeat(" ", depth), tag))
+
+						typeStr := sliceElement.Type().String()
+						switch typeStr {
+						case "netip.Prefix", "netip.Addr":
+							val, err := formatValue(sliceElement, omitEmpty)
+							if err != nil {
+								return err
+							}
+							bufferWriteHelper(buffer, val)
+						default:
+							bufferWriteHelper(buffer, "{\n")
+							err = marshalValue(buffer, sliceElement, depth+4)
+							bufferWriteHelper(buffer, fmt.Sprintf("%s%s", strings.Repeat(" ", depth), "}"))
+							if err != nil {
+								return err
+							}
+						}
+
+						bufferWriteHelper(buffer, "\n")
+					}
+				default:
+					// Directly marshal field with value.
+					fieldValue, err := formatValue(field, omitEmpty)
 					if err != nil {
 						return err
 					}
-					bufferWriteHelper(buffer, fmt.Sprintf("%s%s", strings.Repeat(" ", depth), tag))
-
-					typeStr := sliceElement.Type().String()
-					switch typeStr {
-					case "netip.Prefix", "netip.Addr":
-						val, err := formatValue(sliceElement, omitEmpty)
-						if err != nil {
-							return err
-						}
-						bufferWriteHelper(buffer, val)
-					default:
-						bufferWriteHelper(buffer, "{\n")
-						err = marshalValue(buffer, sliceElement, depth+4)
-						bufferWriteHelper(buffer, fmt.Sprintf("%s%s", strings.Repeat(" ", depth), "}"))
-						if err != nil {
-							return err
-						}
+					if !omitEmpty || (fieldValue != "") {
+						bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, fieldValue))
 					}
-
-					bufferWriteHelper(buffer, "\n")
-				}
-			default:
-				// Directly marshal field with value.
-				fieldValue, err := formatValue(field, omitEmpty)
-				if err != nil {
-					return err
-				}
-				if !omitEmpty || (fieldValue != "") {
-					bufferWriteHelper(buffer, fmt.Sprintf("%s%s%s\n", strings.Repeat(" ", depth), tag, fieldValue))
 				}
 			}
 		}

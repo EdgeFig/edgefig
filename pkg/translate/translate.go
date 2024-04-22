@@ -263,6 +263,7 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 				NextHop:     staticRoute.NextHop,
 				Description: staticRoute.Description,
 				Distance:    staticRoute.Distance,
+				Interface:   staticRoute.Interface,
 			},
 		}
 
