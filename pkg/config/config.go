@@ -125,6 +125,14 @@ type BGPPeer struct {
 	ASN             uint32         `yaml:"asn"`
 	AnnounceDefault bool           `yaml:"announce-default"`
 	Announcements   []netip.Prefix `yaml:"announcements"`
+	Accept          []BGPAccept    `yaml:"accept"`
+}
+
+// BGPAccept what routes we should accept from the peer
+type BGPAccept struct {
+	Prefix netip.Prefix `yaml:"prefix"`
+	GE     uint8        `edge:"ge,omitempty"`
+	LE     uint8        `edge:"le,omitempty"`
 }
 
 // StaticRoute is a statically configured route in the router
