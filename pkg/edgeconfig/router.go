@@ -233,7 +233,7 @@ type BGPNeighbor struct {
 	RouteMap            BGPNeighborRouteMap      `edge:"route-map,omitempty"`
 	DefaultOriginate    BGPDefaultOriginate      `edge:"default-originate,omitempty"`
 	SoftReconfiguration BGPSoftReconfiguration   `edge:"soft-reconfiguration,omitempty"`
-	UpdateSource        netip.Addr               `edge:"update-source"`
+	UpdateSource        netip.Addr               `edge:"update-source,omitempty"`
 }
 
 // BGPNeighborAddressFamily essentially lets us get a route map for v6 connections
