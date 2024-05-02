@@ -1,7 +1,7 @@
 package translate
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 
@@ -17,11 +17,11 @@ const (
 
 // getBGPGroupName returns the peer specific group name to use for prefix-lists and route-maps
 func getBGPGroupName(bgpPeer config.BGPPeer, direction bgpDir) string {
-	hasher := sha256.New()
+	hasher := md5.New()
 	hasher.Write([]byte(fmt.Sprintf("%d", bgpPeer.ASN)))
 	hasher.Write(bgpPeer.IP.AsSlice())
 	hashBytes := hasher.Sum(nil)
-	hashString := hex.EncodeToString(hashBytes)
+	hash := hex.EncodeToString(hashBytes)
 
-	return fmt.Sprintf("BGP-%s-%s", hashString, direction)
+	return fmt.Sprintf("BGP-%s-%s", hash, direction)
 }
