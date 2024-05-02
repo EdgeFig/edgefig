@@ -8,6 +8,7 @@ import (
 	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
+// @TODO should split this to per-peer maps vs just this group
 const (
 	// RouteMapV4To Name of the ipv4 To group
 	RouteMapV4To = "BGP-ISP-To"
@@ -238,29 +239,30 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			}
 
 			edgeBGPConfig.Neighbors = append(edgeBGPConfig.Neighbors, nbr)
-		}
 
-		for _, prefix := range bgpCfg.Announcements {
-			if prefix.Addr().Is6() {
-				// Specifically add the network to the BGP section in the config
-				edgeBGPConfig.AddressFamily.IPv6Unicast.Networks = append(edgeBGPConfig.AddressFamily.IPv6Unicast.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
+			// @TODO should split this to per-peer maps
+			for _, prefix := range bgpPeer.Announcements {
+				if prefix.Addr().Is6() {
+					// Specifically add the network to the BGP section in the config
+					edgeBGPConfig.AddressFamily.IPv6Unicast.Networks = append(edgeBGPConfig.AddressFamily.IPv6Unicast.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
 
-				// This is somewhat fragile - we're relying on the order of the items in the slice for From/To/v6 From/v6 To
-				defaultRouter.Policy.PrefixLists[3].Rules = append(defaultRouter.Policy.PrefixLists[3].Rules, edgeconfig.PrefixListRule{
-					Action: types.Permit,
-					Prefix: prefix,
-				})
-			} else {
-				// Specifically add the network to the BGP section in the config
-				edgeBGPConfig.Networks = append(edgeBGPConfig.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
+					// This is somewhat fragile - we're relying on the order of the items in the slice for From/To/v6 From/v6 To
+					defaultRouter.Policy.PrefixLists[3].Rules = append(defaultRouter.Policy.PrefixLists[3].Rules, edgeconfig.PrefixListRule{
+						Action: types.Permit,
+						Prefix: prefix,
+					})
+				} else {
+					// Specifically add the network to the BGP section in the config
+					edgeBGPConfig.Networks = append(edgeBGPConfig.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
 
-				// This is somewhat fragile - we're relying on the order of the items in the slice for From/To/v6 From/v6 To
-				defaultRouter.Policy.PrefixLists[1].Rules = append(defaultRouter.Policy.PrefixLists[1].Rules, edgeconfig.PrefixListRule{
-					Action: types.Permit,
-					Prefix: prefix,
-				})
+					// This is somewhat fragile - we're relying on the order of the items in the slice for From/To/v6 From/v6 To
+					defaultRouter.Policy.PrefixLists[1].Rules = append(defaultRouter.Policy.PrefixLists[1].Rules, edgeconfig.PrefixListRule{
+						Action: types.Permit,
+						Prefix: prefix,
+					})
+				}
+
 			}
-
 		}
 
 		defaultRouter.Protocols.BGP = append(defaultRouter.Protocols.BGP, edgeBGPConfig)
