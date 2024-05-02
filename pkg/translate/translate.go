@@ -8,18 +8,6 @@ import (
 	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
-// @TODO should split this to per-peer maps vs just this group
-const (
-	// RouteMapV4To Name of the ipv4 To group
-	RouteMapV4To = "BGP-ISP-To"
-	// RouteMapV4From Name of the ipv4 From group
-	RouteMapV4From = "BGP-ISP-From"
-	// RouteMapV6To Name of the ipv6 To group
-	RouteMapV6To = "BGP-ISPv6-To"
-	// RouteMapV6From Name of the ipv6 From group
-	RouteMapV6From = "BGP-ISPv6-From"
-)
-
 // ConfigToEdgeConfig translates the friendly config to edgerouter config
 // @TODO this should return a whole set of configs, not just router configs
 func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
@@ -214,6 +202,79 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 		}
 
 		for _, bgpPeer := range bgpCfg.Peers {
+			bgpGroupNameTo := getBGPGroupName(bgpPeer, bgpDirTo)
+			bgpGroupNameFrom := getBGPGroupName(bgpPeer, bgpDirFrom)
+
+			prefixListFrom := edgeconfig.PrefixList{
+				Name:  bgpGroupNameFrom,
+				Rules: []edgeconfig.PrefixListRule{},
+			}
+			prefixListTo := edgeconfig.PrefixList{
+				Name:  bgpGroupNameTo,
+				Rules: []edgeconfig.PrefixListRule{},
+			}
+			routeMapFrom := edgeconfig.RouteMap{
+				Name: bgpGroupNameFrom,
+			}
+			routeMapTo := edgeconfig.RouteMap{
+				Name: bgpGroupNameTo,
+			}
+
+			if bgpPeer.IP.Is6() {
+				prefixListFrom.PrefixListSuffix = "6"
+				prefixListTo.PrefixListSuffix = "6"
+
+				routeMapFrom.Rules = []edgeconfig.RouteMapRule{
+					{
+						Action: types.Permit,
+						Match: edgeconfig.RouteMapMatch{
+							IPv6: edgeconfig.RouteMatchIP{
+								Address: edgeconfig.RouteMapAddress{
+									PrefixList: bgpGroupNameFrom,
+								},
+							},
+						},
+					},
+				}
+				routeMapTo.Rules = []edgeconfig.RouteMapRule{
+					{
+						Action: types.Permit,
+						Match: edgeconfig.RouteMapMatch{
+							IPv6: edgeconfig.RouteMatchIP{
+								Address: edgeconfig.RouteMapAddress{
+									PrefixList: bgpGroupNameTo,
+								},
+							},
+						},
+					},
+				}
+			} else {
+				routeMapFrom.Rules = []edgeconfig.RouteMapRule{
+					{
+						Action: types.Permit,
+						Match: edgeconfig.RouteMapMatch{
+							IPv4: edgeconfig.RouteMatchIP{
+								Address: edgeconfig.RouteMapAddress{
+									PrefixList: bgpGroupNameFrom,
+								},
+							},
+						},
+					},
+				}
+				routeMapTo.Rules = []edgeconfig.RouteMapRule{
+					{
+						Action: types.Permit,
+						Match: edgeconfig.RouteMapMatch{
+							IPv4: edgeconfig.RouteMatchIP{
+								Address: edgeconfig.RouteMapAddress{
+									PrefixList: bgpGroupNameTo,
+								},
+							},
+						},
+					},
+				}
+			}
+
 			nbr := edgeconfig.BGPNeighbor{
 				IP:  bgpPeer.IP,
 				ASN: bgpPeer.ASN,
@@ -225,44 +286,46 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 				},
 				UpdateSource: bgpPeer.SourceIP,
 			}
-
 			if bgpPeer.IP.Is6() {
 				nbr.AddressFamily.IPv6Unicast.RouteMap = edgeconfig.BGPNeighborRouteMap{
-					Export: RouteMapV6To,
-					Import: RouteMapV6From,
+					Export: bgpGroupNameTo,
+					Import: bgpGroupNameFrom,
 				}
 			} else {
 				nbr.RouteMap = edgeconfig.BGPNeighborRouteMap{
-					Export: RouteMapV4To,
-					Import: RouteMapV4From,
+					Export: bgpGroupNameTo,
+					Import: bgpGroupNameFrom,
 				}
 			}
 
 			edgeBGPConfig.Neighbors = append(edgeBGPConfig.Neighbors, nbr)
 
-			// @TODO should split this to per-peer maps
 			for _, prefix := range bgpPeer.Announcements {
+				prefixListTo.Rules = append(prefixListTo.Rules, edgeconfig.PrefixListRule{
+					Action: types.Permit,
+					Prefix: prefix,
+				})
+
 				if prefix.Addr().Is6() {
 					// Specifically add the network to the BGP section in the config
 					edgeBGPConfig.AddressFamily.IPv6Unicast.Networks = append(edgeBGPConfig.AddressFamily.IPv6Unicast.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
-
-					// This is somewhat fragile - we're relying on the order of the items in the slice for From/To/v6 From/v6 To
-					defaultRouter.Policy.PrefixLists[3].Rules = append(defaultRouter.Policy.PrefixLists[3].Rules, edgeconfig.PrefixListRule{
-						Action: types.Permit,
-						Prefix: prefix,
-					})
 				} else {
 					// Specifically add the network to the BGP section in the config
 					edgeBGPConfig.Networks = append(edgeBGPConfig.Networks, edgeconfig.BGPNetwork{Prefix: prefix})
-
-					// This is somewhat fragile - we're relying on the order of the items in the slice for From/To/v6 From/v6 To
-					defaultRouter.Policy.PrefixLists[1].Rules = append(defaultRouter.Policy.PrefixLists[1].Rules, edgeconfig.PrefixListRule{
-						Action: types.Permit,
-						Prefix: prefix,
-					})
 				}
-
 			}
+
+			for _, accept := range bgpPeer.Accept {
+				prefixListFrom.Rules = append(prefixListFrom.Rules, edgeconfig.PrefixListRule{
+					Action: types.Permit,
+					GE:     accept.GE,
+					LE:     accept.LE,
+					Prefix: accept.Prefix,
+				})
+			}
+
+			defaultRouter.Policy.PrefixLists = append(defaultRouter.Policy.PrefixLists, prefixListFrom, prefixListTo)
+			defaultRouter.Policy.RouteMaps = append(defaultRouter.Policy.RouteMaps, routeMapFrom, routeMapTo)
 		}
 
 		defaultRouter.Protocols.BGP = append(defaultRouter.Protocols.BGP, edgeBGPConfig)
