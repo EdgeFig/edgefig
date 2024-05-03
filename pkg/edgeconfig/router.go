@@ -140,8 +140,8 @@ type Interface struct {
 	AddressDHCP string                      `edge:"address,omitempty"`
 	Duplex      AutoString                  `edge:"duplex"`
 	IPv6        InterfaceIPv6Settings       `edge:"ipv6,omitempty"`
-	MTU         uint16                      `edge:"mtu,omitempty"`
 	Firewall    InterfaceFirewallAssignment `edge:"firewall,omitempty"`
+	MTU         uint16                      `edge:"mtu,omitempty"`
 	Speed       AutoUint32                  `edge:"speed"`
 	VLANs       []VLAN                      `edge:"vif {{ .ID }}"`
 }
