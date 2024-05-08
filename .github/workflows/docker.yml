@@ -8,6 +8,10 @@ on:
       - '**'
   pull_request:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   package:
     uses: Chia-Network/actions/.github/workflows/docker-build.yaml@main
