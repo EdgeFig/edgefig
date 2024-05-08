@@ -1,0 +1,130 @@
+name: Build Binaries
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: golang:1
+    strategy:
+      matrix:
+        GOOS: ["linux", "darwin", "windows"]
+        GOARCH: ["amd64", "arm64"]
+    steps:
+      - uses: Chia-Network/actions/git-mark-workspace-safe@main
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Binary
+        env:
+          GOOS: ${{ matrix.GOOS }}
+          GOARCH: ${{ matrix.GOARCH }}
+        run: make build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: edgefig-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: ${{ github.workspace }}/bin/edgefig*
+
+  installers:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    strategy:
+      matrix:
+        GOOS: ["linux"]
+        GOARCH: ["amd64", "arm64"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Env
+        uses: Chia-Network/actions/setjobenv@main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install fpm
+        run: sudo gem install fpm
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: edgefig-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: artifacts
+
+      - name: Generate .deb
+        run: |
+          chmod +x artifacts/edgefig
+          fpm \
+            --input-type dir \
+            --output-type deb \
+            --name edgefig \
+            --architecture ${{ matrix.GOARCH }} \
+            --version "${{ env.RELEASE_TAG || github.sha }}" \
+            --url "https://github.com/EdgeFig/edgefig" \
+            --maintainer "Chris Marslender <chrismarslender@gmail.com>" \
+            --description "Configuration tool for EdgeRouter/EdgeSwitch line of devices from Ubiquiti" \
+            artifacts/edgefig=/usr/local/bin/edgefig
+          mkdir -p installer-out
+          mv *.deb installer-out/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: installer-edgefig-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: ${{ github.workspace }}/installer-out/*.deb
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - installers
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Env
+        uses: Chia-Network/actions/setjobenv@main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Show artifacts
+        run: tree artifacts
+
+      - name: Generate artifact zips
+        if: env.RELEASE == 'true'
+        run: |
+          cd ${{ github.workspace }}/artifacts || exit 1
+          DIRS=$(find . -type d -name 'edgefig*')
+          while IFS= read -r dir; do
+            echo "Creating zip for $dir..."
+            zip -r $dir.zip $dir
+          done <<< "$DIRS"
+
+      - name: Upload Release Artifacts
+        if: env.RELEASE == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FILES=$(find ${{ github.workspace }}/artifacts -type f -name 'edgefig*.zip')
+          while IFS= read -r file; do
+            gh release upload \
+              $RELEASE_TAG \
+              $file
+          done <<< "$FILES"
+
+          gh release upload \
+            $RELEASE_TAG \
+            artifacts/installer-edgefig*/*.deb
