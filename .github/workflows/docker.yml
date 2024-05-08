@@ -1,0 +1,13 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+  pull_request:
+
+jobs:
+  package:
+    uses: Chia-Network/actions/.github/workflows/docker-build.yaml@main
