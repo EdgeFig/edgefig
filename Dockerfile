@@ -14,6 +14,6 @@ RUN apk add --no-cache git bash build-base libffi-dev openssl-dev bzip2-dev zlib
     pyenv install 3.11 && \
     pyenv global 3.11 && \
     pip install --upgrade pip && \
-    pip install --no-cache-dir j2cli && \
+    pip install --no-cache-dir j2cli
 
 COPY --from=builder /app/bin/edgefig /bin/edgefig
