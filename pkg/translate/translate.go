@@ -276,8 +276,9 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 			}
 
 			nbr := edgeconfig.BGPNeighbor{
-				IP:  bgpPeer.IP,
-				ASN: bgpPeer.ASN,
+				IP:       bgpPeer.IP,
+				ASN:      bgpPeer.ASN,
+				Password: bgpPeer.Password,
 				DefaultOriginate: edgeconfig.BGPDefaultOriginate{
 					Originate: bgpPeer.AnnounceDefault,
 				},

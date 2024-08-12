@@ -123,6 +123,7 @@ type BGPPeer struct {
 	IP              netip.Addr     `yaml:"ip"`
 	SourceIP        netip.Addr     `yaml:"source-ip"`
 	ASN             uint32         `yaml:"asn"`
+	Password        string         `yaml:"password"`
 	AnnounceDefault bool           `yaml:"announce-default"`
 	Announcements   []netip.Prefix `yaml:"announcements"`
 	Accept          []BGPAccept    `yaml:"accept"`

@@ -229,6 +229,7 @@ type BGPIPv6Unicast struct {
 type BGPNeighbor struct {
 	IP                  netip.Addr
 	AddressFamily       BGPNeighborAddressFamily `edge:"address-family,omitempty"`
+	Password            string                   `edge:"password,omitempty"`
 	ASN                 uint32                   `edge:"remote-as"`
 	RouteMap            BGPNeighborRouteMap      `edge:"route-map,omitempty"`
 	DefaultOriginate    BGPDefaultOriginate      `edge:"default-originate,omitempty"`
