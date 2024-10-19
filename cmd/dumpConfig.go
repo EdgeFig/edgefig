@@ -22,7 +22,8 @@ var dumpConfigCmd = &cobra.Command{
 			log.Fatalln(err.Error())
 		}
 
-		edgecfg, err := translate.ConfigToEdgeConfig(cfg)
+		// @TODO dynamic or CLI configurable number of interfaces?
+		edgecfg, err := translate.ConfigToEdgeConfig(cfg, map[string]struct{}{})
 		if err != nil {
 			log.Fatalln(err.Error())
 		}

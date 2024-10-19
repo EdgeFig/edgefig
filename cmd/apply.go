@@ -27,19 +27,24 @@ var applyCmd = &cobra.Command{
 			log.Fatalln(err.Error())
 		}
 
-		edgecfg, err := translate.ConfigToEdgeConfig(cfg)
+		// @TODO should iterate all devices that come back in edgecfg and apply
+		connDeets := cfg.Routers[0].Connection
+		ssh, err := connection.NewSSHConnection(connDeets.IP, connDeets.Port, connDeets.Username, connDeets.Password)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+
+		availableInterfaces, err := ssh.GetAvailablePorts()
+		if err != nil {
+			log.Fatalf("Error getting available ports: %s\n", err.Error())
+		}
+
+		edgecfg, err := translate.ConfigToEdgeConfig(cfg, availableInterfaces)
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
 
 		marshalled, err := edgeconfig.Marshal(edgecfg)
-		if err != nil {
-			log.Fatalln(err.Error())
-		}
-
-		// @TODO should iterate all devices that come back in edgecfg and apply
-		connDeets := cfg.Routers[0].Connection
-		ssh, err := connection.NewSSHConnection(connDeets.IP, connDeets.Port, connDeets.Username, connDeets.Password)
 		if err != nil {
 			log.Fatalln(err.Error())
 		}

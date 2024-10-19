@@ -10,7 +10,7 @@ import (
 
 // ConfigToEdgeConfig translates the friendly config to edgerouter config
 // @TODO this should return a whole set of configs, not just router configs
-func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
+func ConfigToEdgeConfig(cfg *config.Config, interfaces map[string]struct{}) (*edgeconfig.Router, error) {
 	if len(cfg.Routers) == 0 {
 		return nil, fmt.Errorf("no routers configured")
 	}
@@ -18,7 +18,7 @@ func ConfigToEdgeConfig(cfg *config.Config) (*edgeconfig.Router, error) {
 	// @TODO Deal with more than the 0th router
 	router := cfg.Routers[0]
 
-	defaultRouter := getDefaultRouterConfig()
+	defaultRouter := getDefaultRouterConfig(interfaces)
 	defaultRouter.Firewall.AllPing = types.Enable
 	defaultRouter.Firewall.SendRedirects = types.Enable
 	defaultRouter.Firewall.SynCookies = types.Enable

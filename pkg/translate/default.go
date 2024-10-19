@@ -3,15 +3,17 @@ package translate
 import (
 	"fmt"
 	"net/netip"
+	"strings"
 
 	"github.com/cmmarslender/edgefig/pkg/edgeconfig"
 	"github.com/cmmarslender/edgefig/pkg/types"
 )
 
-func getDefaultRouterConfig() *edgeconfig.Router {
+func getDefaultRouterConfig(interfaces map[string]struct{}) *edgeconfig.Router {
 	cfg := edgeconfig.Router{
 		Interfaces: edgeconfig.Interfaces{
-			// @TODO need to do interface discovery to see how many interfaces are supported
+			// Edgerouters have eth0 on a static IP and eth1 on DHCP out of the box
+			// We do discovery to determine what other interfaces exist
 			Interfaces: []edgeconfig.Interface{
 				{
 					Name:  "eth0",
@@ -25,35 +27,8 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 					State:       types.Enabled,
 					AddressDHCP: "dhcp",
 				},
-				{
-					Name:  "eth2",
-					State: types.Disabled,
-				},
-				{
-					Name:  "eth3",
-					State: types.Disabled,
-				},
-				{
-					Name:  "eth4",
-					State: types.Disabled,
-				},
-				{
-					Name:  "eth5",
-					State: types.Disabled,
-				},
-				{
-					Name:  "eth6",
-					State: types.Disabled,
-				},
-				{
-					Name:  "eth7",
-					State: types.Disabled,
-				},
-				{
-					Name:  "eth8",
-					State: types.Disabled,
-				},
 			},
+			Switches: []edgeconfig.SwitchInterface{},
 		},
 		System: edgeconfig.RouterSystem{
 			HostName: "EdgeRouter-Infinity", // @TODO this should be based on the detected router model
@@ -111,6 +86,25 @@ func getDefaultRouterConfig() *edgeconfig.Router {
 				ProtocolVersion: "v2",
 			},
 		},
+	}
+
+	skip := map[string]struct{}{"eth0": {}, "eth1": {}}
+	for iface := range interfaces {
+		if _, ok := skip[iface]; ok {
+			continue
+		}
+		if strings.Contains(iface, "switch") {
+			cfg.Interfaces.Switches = append(cfg.Interfaces.Switches, edgeconfig.SwitchInterface{
+				Name: iface,
+				MTU:  1500,
+			})
+		} else {
+			cfg.Interfaces.Interfaces = append(cfg.Interfaces.Interfaces, edgeconfig.Interface{
+				Name:  iface,
+				State: types.Disabled,
+			})
+		}
+
 	}
 
 	err := cfg.Validate()

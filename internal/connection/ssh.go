@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/netip"
+	"strings"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -52,6 +53,57 @@ func (s *SSHConnection) remoteCommand(command string) (*bytes.Buffer, error) {
 	}
 
 	return &b, nil
+}
+
+// GetAvailablePorts lists out the ports supported on the router
+func (s *SSHConnection) GetAvailablePorts() (map[string]struct{}, error) {
+	buf, err := s.remoteCommand("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces")
+	if err != nil {
+		return nil, fmt.Errorf("error reading ethernet interfaces: %w", err)
+	}
+
+	/*
+		Codes: S - State, L - Link, u - Up, D - Down, A - Admin Down
+		Interface    IP Address                        S/L  Description
+		---------    ----------                        ---  -----------
+		eth0         192.168.1.1/24                    u/u  Static Config
+		eth1         10.0.0.3/22                       u/D  WAN
+		eth2         10.0.100.1/24                     u/D  LAN_10_0_100_X
+		eth2.15      10.0.101.1/24                     u/D  ceph
+		eth3         10.0.102.56/31                    u/D  BGP_10.0.102.56_7
+		eth4         -                                 A/D
+		eth5         -                                 A/D
+		lo           127.0.0.1/8                       u/u
+		             ::1/128
+		switch0      -                                 u/u
+	*/
+	ports := map[string]struct{}{}
+
+	// Split the output into lines
+	output := buf.String()
+	lines := strings.Split(output, "\n")
+
+	// Iterate over each line to parse the interfaces
+	for _, line := range lines {
+		// Trim leading and trailing spaces
+		line = strings.TrimSpace(line)
+
+		// Check if the line starts with 'eth'
+		if strings.HasPrefix(line, "eth") || strings.HasPrefix(line, "switch") {
+			// Extract the interface name (the first word in the line)
+			parts := strings.Fields(line)
+			if len(parts) > 0 {
+				interfaceName := parts[0]
+
+				// Ensure the interface name does not contain a dot (i.e., it’s not a subinterface like eth2.15)
+				if !strings.Contains(interfaceName, ".") {
+					ports[interfaceName] = struct{}{}
+				}
+			}
+		}
+	}
+
+	return ports, nil
 }
 
 // FetchLiveConfig gets the current config from the host

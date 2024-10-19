@@ -127,8 +127,9 @@ type FirewallRuleState struct {
 
 // Interfaces wraps all interfaces in the config
 type Interfaces struct {
-	Interfaces []Interface `edge:"ethernet {{ .Name }}"`
-	Loopback   Loopback    `edge:"loopback lo"`
+	Interfaces []Interface       `edge:"ethernet {{ .Name }}"`
+	Loopback   Loopback          `edge:"loopback lo"`
+	Switches   []SwitchInterface `edge:"switch {{ .Name }}"`
 }
 
 // Interface is a single interface on the router
@@ -144,6 +145,12 @@ type Interface struct {
 	MTU         uint16                      `edge:"mtu,omitempty"`
 	Speed       AutoUint32                  `edge:"speed"`
 	VLANs       []VLAN                      `edge:"vif {{ .ID }}"`
+}
+
+// SwitchInterface is a single switch interface on the router
+type SwitchInterface struct {
+	Name string
+	MTU  uint16 `edge:"mtu,omitempty"`
 }
 
 // InterfaceIPv6Settings controls ipv6 settings/networks for the interface
