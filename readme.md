@@ -21,22 +21,183 @@ routers:
       eth0:
         name: WAN
         addresses:
-          - 10.100.1.1/24
+          - 203.0.113.2/30
+          - 2001:db8:40:1::2/126
       eth1:
         name: LAN
         addresses:
-          - 10.0.0.1/24
+          - 192.0.2.0/24
+        mtu: 9000
+        ipv6:
+          nameserver: 2606:4700:4700::1111
+          prefixes:
+            - prefix: 2001:db8:40:2::/64
+              autonomous: true
+        vlans:
+          - examplevlan
+    firewall:
+      groups: {}
+      zones:
+        - name: WAN_IN
+          ip-type: ipv4
+          default-action: drop
+          description: Traffic inbound on WAN port to somewhere else in the network
+          in:
+            - eth0
+          rules:
+            - action: accept
+              description: Allow established/related
+              destination:
+                prefix: 192.0.2.0/24
+              log: disable
+              protocol: all
+              established: enable
+              invalid: disable
+              new: disable
+              related: enable
+
+            - action: accept
+              description: Allow ICMP
+              log: disable
+              protocol: icmp
+
+        - name: WAN_LOCAL
+          ip-type: ipv4
+          default-action: drop
+          description: Traffic inbound on WAN port to the local router
+          local:
+            - eth0
+          rules:
+            - action: accept
+              description: Allow established/related
+              protocol: all
+              established: enable
+              related: enable
+
+            - action: drop
+              description: Drop invalid state
+              protocol: all
+              invalid: enable
+
+            - action: accept
+              description: Enable Ping
+              protocol: icmp
+
+        - name: WAN_IN_6
+          ip-type: ipv6
+          default-action: drop
+          description: ipv6 traffic inbound on WAN port to somewhere else in the network
+          in:
+            - eth0
+          rules:
+            - action: accept
+              log: disable
+              protocol: icmpv6
+
+            - action: accept
+              established: enable
+              related: enable
+
+        - name: WAN_LOCAL_6
+          ip-type: ipv6
+          default-action: drop
+          description: ipv6 traffic inbound on WAN port to the local router
+          local:
+            - eth0
+          rules:
+            - action: accept
+              description: ICMPv6
+              protocol: icmpv6
+
+            - action: accept
+              description: "Allow related & established"
+              protocol: all
+              established: enable
+              related: enable
+    bgp:
+      - asn: 65536 # This is our ASN
+        router-id: 203.0.113.2
+        peers:
+          # ISPv4
+          - ip: 203.0.113.1
+            source-ip: 203.0.113.2 # If you need the BGP session to originate from a specific IP
+            asn: 65537 # This is our peer's ASN
+            announce-default: false
+            announcements:
+              - 1.2.3.4/24 # Announce this block to the peer
+            accept:
+              - prefix: 0.0.0.0/0
+                le: 24
+          # ISPv6
+          - ip: 2001:db8:40:1::1
+            source-ip: 2001:db8:40:1::2
+            asn: 65537 # This is our peer's ASN
+            announce-default: false
+            announcements:
+              - 2001:db8:40::/48
+            accept:
+              - prefix: ::/0
+                le: 64
+    routes:
+      - description: Default Route ipv4
+        route: 0.0.0.0/0
+        next-hop: 203.0.113.1
+        distance: 1
+      - description: Default Route ipv6
+        route: ::/0
+        next-hop: 2001:db8:40:1::1
+        distance: 1
     dhcp:
       - name: LAN
         authoritative: true
-        subnet: 10.0.0.0/24
-        router: 10.0.0.1
-        start: 10.0.0.150
-        stop: 10.0.0.254
+        subnet: 192.0.2.0/24
+        router: 192.0.2.1
+        start: 192.0.2.150
+        stop: 192.0.2.254
+        lease: 86400
         dns:
           - 1.1.1.1
           - 8.8.8.8
+        reservations:
+          - name: example-reservation-name
+            mac: 00:00:5E:00:53:00
+            ip: 192.0.2.21
+      - name: examplevlan
+        authoritative: true
+        subnet: 198.51.100.0/24
+        router: 198.51.100.1
+        start: 198.51.100.50
+        stop: 198.51.100.254
+        lease: 86400
+        dns:
+          - 1.1.1.1
+          - 8.8.8.8
+        reservations: []
+    dns:
+      forwarding:
+        cache-size: 150
+        listen-on:
+          - eth1
+        nameservers:
+          - 1.1.1.1
+          - 8.8.8.8
     nat:
+      - name: Destination NAT Example
+        type: destination
+        inbound_interface: eth1
+        protocol: all
+        inside_address:
+          address: 192.0.2.21
+        outside_address:
+          address: 203.0.113.7
+      - name: Source NAT Example
+        type: source
+        outbound_interface: eth1
+        protocol: all
+        inside_address:
+          address: 192.0.2.21
+        outside_address:
+          address: 203.0.113.7
       - name: Masquerade for WAN
         type: masquerade
         outbound_interface: eth0
@@ -50,11 +211,12 @@ routers:
 #switches:
 #  - name: switch01
 
-#firewall:
-#  - <rule>
-
-#vlans:
-#  -
+# VLANs are defined here and assigned by name to routers, switch ports, etc
+vlans:
+  - name: examplevlan
+    id: 15
+    address: 198.51.100.0/24
+    mtu: 9000
 
 ```
 
