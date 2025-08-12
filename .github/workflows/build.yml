@@ -57,7 +57,7 @@ jobs:
       - name: Install fpm
         run: sudo gem install fpm
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: edgefig-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
           path: artifacts
@@ -96,7 +96,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: artifacts
 
